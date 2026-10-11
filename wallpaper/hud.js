@@ -517,7 +517,28 @@
     try { pcTrack = data ? (typeof data === "string" ? JSON.parse(data) : data) : null; } catch (e) { pcTrack = null; }
     showIdle();
   };
+  function runCommand(cmd) {
+    if (cmd === "playPause") $("play").click();
+    else if (cmd === "next") $("next").click();
+    else if (cmd === "prev") $("prev").click();
+  }
+  try {
+    const controlUrl = new URL("control.json", location.href).href;
+    const src = "let last = null;" +
+      "setInterval(async () => { try {" +
+      " const r = await fetch(" + JSON.stringify(controlUrl) + " + '?t=' + Date.now(), { cache: 'no-store' });" +
+      " if (!r.ok) return; const c = await r.json();" +
+      " if (last === null) { last = c.id; return; }" +
+      " if (c.id !== last) { last = c.id; postMessage(c.cmd); }" +
+      "} catch (e) {} }, 300);";
+    const worker = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+    worker.onmessage = (e) => runCommand(e.data);
+  } catch (e) {}
+
   window.livelyPropertyListener = function (name, val) {
+    if (name === "playPause") { $("play").click(); return; }
+    if (name === "nextTrack") { $("next").click(); return; }
+    if (name === "prevTrack") { $("prev").click(); return; }
     if (name === "darkHour") opts.darkHour = Number(val) || 0;
     else if (name === "volume") { opts.volume = Number(val); if (userVol !== null && userVol !== opts.volume && performance.now() > 4000) { userVol = opts.volume; store.set("vol", userVol); } applyVol(); }
     else if (name === "animated") setAnimated(!!val);

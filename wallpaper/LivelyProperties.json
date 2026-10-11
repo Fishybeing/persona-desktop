@@ -49,5 +49,20 @@
     "type": "checkbox",
     "text": "Show artist credit",
     "value": true
+  },
+  "playPause": {
+    "type": "button",
+    "text": "Music",
+    "value": "Play / Pause"
+  },
+  "nextTrack": {
+    "type": "button",
+    "text": "Music",
+    "value": "Next song"
+  },
+  "prevTrack": {
+    "type": "button",
+    "text": "Music",
+    "value": "Previous song"
   }
 }
