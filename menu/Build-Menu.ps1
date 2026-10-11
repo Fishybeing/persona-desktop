@@ -76,16 +76,17 @@ function Export-ShortcutIcon($path, $out) {
   return (Export-Icon $path 0 $out)
 }
 
-$cfg = @{ personaIconsOnlyInGames = $false; alwaysShowGames = @() }
+$cfg = @{ personaIconsOnlyInGames = $false; alwaysShowGames = @(); hideSections = @() }
 $cfgFile = Join-Path $PSScriptRoot "menu-settings.json"
 if (Test-Path $cfgFile) {
   $j = Get-Content $cfgFile -Raw | ConvertFrom-Json
   if ($null -ne $j.personaIconsOnlyInGames) { $cfg.personaIconsOnlyInGames = [bool]$j.personaIconsOnlyInGames }
   if ($j.alwaysShowGames) { $cfg.alwaysShowGames = @($j.alwaysShowGames) }
+  if ($j.hideSections) { $cfg.hideSections = @($j.hideSections | ForEach-Object { "$_".ToUpper() }) }
 }
 $catOrder = "GAMES", "SOCIAL", "INTERNET", "MEDIA", "CREATE", "OFFICE", "TOOLS"
 $catRules = @(
-  @("SOCIAL", 'discord|teams|zoom|skype|whatsapp|telegram|slack|signal|voicemod|messenger|guilded|teamspeak|mumble'),
+  @("SOCIAL", '\bchat\b|discord|teams|zoom|skype|whatsapp|telegram|slack|signal|voicemod|messenger|guilded|teamspeak|mumble'),
   @("INTERNET", 'chrome|firefox|edge|opera|brave|vivaldi|browser'),
   @("MEDIA", 'vlc|spotify|media player|itunes|obs|medal|audacity|foobar|aimp|netflix|youtube|plex|stremio'),
   @("CREATE", 'photoshop|illustrator|blender|premiere|after effects|gimp|krita|paint\.net|davinci|unity|unreal|roblox studio|aseprite|figma|clip studio'),
@@ -218,6 +219,7 @@ foreach ($f in $allFiles) {
 $colW = 300; $rowH = 36; $sk = 10; $top = 64; $headH = 46; $pad = 18; $gap = 14
 $sections = @()
 foreach ($c in $catOrder) {
+  if ($cfg.hideSections -contains $c) { continue }
   $list = @($items | Where-Object { $_.Cat -eq $c } | Sort-Object Name)
   if ($c -eq "GAMES" -and $cfg.personaIconsOnlyInGames) {
     $list = @($list | Where-Object { $n = $_.Name; $_.Persona -or ($cfg.alwaysShowGames | Where-Object { $n -like "$_*" }) })
