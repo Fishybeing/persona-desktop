@@ -18,7 +18,7 @@ Unzip it and double-click **Install.bat**. That's it.
 
 **Persona 5 menu** (top left)
 - Click the red MENU tab to open or close it. It uses the Persona 5 menu font and sounds.
-- It lists the apps and games you actually have installed, split into Games and Apps, and opens them with one click.
+- It lists everything installed on your PC (Start menu apps, Steam games, launchers), sorted into Games, Social, Internet, Media, Create, Office and Tools, and opens them with one click. Uninstallers, help files and Windows admin tools are left out.
 - Hit UPDATE LIST after installing or removing something.
 
 **Persona 5 system bars** (bottom left)

@@ -76,6 +76,22 @@ function Export-ShortcutIcon($path, $out) {
   return (Export-Icon $path 0 $out)
 }
 
+$catOrder = "GAMES", "SOCIAL", "INTERNET", "MEDIA", "CREATE", "OFFICE", "TOOLS"
+$catRules = @(
+  @("SOCIAL", 'discord|teams|zoom|skype|whatsapp|telegram|slack|signal|voicemod|messenger|guilded|teamspeak|mumble'),
+  @("INTERNET", 'chrome|firefox|edge|opera|brave|vivaldi|browser'),
+  @("MEDIA", 'vlc|spotify|media player|itunes|obs|medal|audacity|foobar|aimp|netflix|youtube|plex|stremio'),
+  @("CREATE", 'photoshop|illustrator|blender|premiere|after effects|gimp|krita|paint\.net|davinci|unity|unreal|roblox studio|aseprite|figma|clip studio'),
+  @("OFFICE", '\bword\b|excel|powerpoint|onenote|outlook|libreoffice|acrobat|notion|obsidian'),
+  @("GAMES", 'roblox player|valorant|minecraft|riot client|epic games|geforce now|modrinth|rpcs3|launcher')
+)
+function Get-Category($name, $target, $isGame) {
+  if ($isGame) { return "GAMES" }
+  $s = ($name + " " + [IO.Path]::GetFileNameWithoutExtension([string]$target)).ToLower()
+  foreach ($r in $catRules) { if ($s -match $r[1]) { return $r[0] } }
+  return "TOOLS"
+}
+
 $items = @()
 $seen = @{}
 $packDir = Join-Path $PSScriptRoot "icons"
@@ -152,11 +168,15 @@ foreach ($e in $pack) {
   $has = Export-Icon (Join-Path $packDir $e.I) 0 $png
   if (-not $has -and $target -notmatch '^[a-z.]+://') { $has = Export-ShortcutIcon $target $png }
   if (-not $has -and $target -like "steam://*" -and $steamRoot) { $has = Export-Icon (Join-Path $steamRoot "steam.exe") 0 $png }
-  $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $target; Game = [bool]$e.G; Icon = $has }
+  $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $target; Cat = (Get-Category $name $target ([bool]$e.G)); Icon = $has }
 }
+$junk = '(?i)^(uninstall|remove)|help|manual|documentation|release notes|website|on the web|faqs?\b|readme|reset preferences|support center|what is new|module docs|odbc|iscsi|component services|computer management|event viewer|performance monitor|print management|resource monitor|security configuration|^services$|system configuration|system information|task scheduler|registry editor|recoverydrive|dfrgui|disk cleanup|memory diagnostics|firewall|administrative tools|character map|^magnify$|^narrator$|on-screen keyboard|voiceaccess|livecaptions|steps recorder|remote desktop|powershell ise|\(x86\)|private browsing|skinned|^run$|administrator|^git (cmd|gui)$|^idle|console rar|intel|logi download|driver|license|changelog'
+$allFiles = @()
 foreach ($dir in $sources) {
-  if (-not (Test-Path $dir)) { continue }
-  foreach ($f in Get-ChildItem $dir -File -Force | Where-Object { $_.Extension -in ".lnk", ".url" }) {
+  if (Test-Path $dir) { $allFiles += Get-ChildItem $dir -File -Force | Where-Object { $_.Extension -in ".lnk", ".url" } }
+}
+$allFiles += $startMenu | Where-Object { $_.BaseName -notmatch $junk }
+foreach ($f in $allFiles) {
     $name = $f.BaseName
     if ($seen.ContainsKey($name.ToLower())) { continue }
     if ($packRx | Where-Object { $name -match $_ }) { continue }
@@ -183,19 +203,32 @@ foreach ($dir in $sources) {
     $png = Join-Path $iconDir "$id.png"
     $has = Export-Icon $iconFile $iconIndex $png
     if (-not $has) { $has = Export-Icon $f.FullName 0 $png }
-    $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $f.FullName; Game = $game; Icon = $has }
-  }
+    $tgt = if ($f.Extension -eq ".lnk") { $ws.CreateShortcut($f.FullName).TargetPath } else { "" }
+    $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $f.FullName; Cat = (Get-Category $name $tgt $game); Icon = $has }
 }
 
-$games = @($items | Where-Object Game | Sort-Object Name)
-$apps = @($items | Where-Object { -not $_.Game } | Sort-Object Name)
-if (-not $games.Count -and $apps.Count -gt 1) { $half = [Math]::Ceiling($apps.Count / 2); $games = $apps[0..($half - 1)]; $apps = $apps[$half..($apps.Count - 1)]; $leftTitle = "SHORTCUTS"; $rightTitle = "" }
-else { $leftTitle = "GAMES"; $rightTitle = "APPS" }
-
-$colW = 300; $rowH = 36; $sk = 10; $top = 64; $headH = 46; $pad = 18
-$rows = [Math]::Max($games.Count, $apps.Count)
-$panelW = 2 * $colW + 2 * $pad + 10
-$panelH = $headH + $rows * $rowH + 58
+$colW = 300; $rowH = 36; $sk = 10; $top = 64; $headH = 46; $pad = 18; $gap = 14
+$sections = @()
+foreach ($c in $catOrder) {
+  $list = @($items | Where-Object { $_.Cat -eq $c } | Sort-Object Name)
+  if ($list.Count) { $sections += [pscustomobject]@{ Title = $c; List = $list; H = $headH + 6 + $list.Count * $rowH + $gap } }
+}
+function Pack-Sections($n) {
+  $hs = New-Object int[] $n
+  foreach ($s in $sections) {
+    $c = 0
+    for ($k = 1; $k -lt $n; $k++) { if ($hs[$k] -lt $hs[$c]) { $c = $k } }
+    $s | Add-Member -NotePropertyName Col -NotePropertyValue $c -Force
+    $s | Add-Member -NotePropertyName Y -NotePropertyValue $hs[$c] -Force
+    $hs[$c] += $s.H
+  }
+  return ,$hs
+}
+$ncols = [Math]::Max(1, [Math]::Min(3, $sections.Count))
+$colH = Pack-Sections $ncols
+if (($colH | Measure-Object -Maximum).Maximum -gt 720 -and $sections.Count -ge 4) { $ncols = 4; $colH = Pack-Sections $ncols }
+$panelW = $ncols * $colW + ($ncols - 1) * 10 + 2 * $pad + 10
+$panelH = ($colH | Measure-Object -Maximum).Maximum + 34
 
 $sb = New-Object Text.StringBuilder
 function L($s) { [void]$sb.AppendLine($s) }
@@ -275,35 +308,33 @@ L "X=0"
 L "Y=$top"
 L ""
 
-$cols = @(@{ Title = $leftTitle; List = $games; X = $pad + 14 }, @{ Title = $rightTitle; List = $apps; X = $pad + 14 + $colW + 10 })
-$c = 0
-foreach ($col in $cols) {
-  $c++
-  $cx = $col.X
-  if ($col.Title) {
-    L "[Head$c]"
-    L "Meter=String"
-    L "Group=Menu"
-    L "Text=$($col.Title)"
-    L "FontFace=Personified UX"
-    L "FontSize=22"
-    L "FontColor=255,255,255,255"
-    L "AntiAlias=1"
-    L "X=$cx"
-    L ("Y={0}" -f ($top + 8))
-    L ""
-    L "[HeadLine$c]"
-    L "Meter=Shape"
-    L "Group=Menu"
-    L ("Shape=Path P | Fill Color #Red# | StrokeWidth 0")
-    L ("P=8,0 | LineTo {0},0 | LineTo {1},5 | LineTo 0,5 | ClosePath 1" -f ($colW - 30), ($colW - 38))
-    L "X=$cx"
-    L ("Y={0}" -f ($top + $headH - 4))
-    L ""
-  }
+$h = 0
+foreach ($sec in $sections) {
+  $h++
+  $cx = $pad + 14 + $sec.Col * ($colW + 10)
+  $sy = $top + $sec.Y
+  L "[Head$h]"
+  L "Meter=String"
+  L "Group=Menu"
+  L "Text=$($sec.Title)"
+  L "FontFace=Personified UX"
+  L "FontSize=22"
+  L "FontColor=255,255,255,255"
+  L "AntiAlias=1"
+  L "X=$cx"
+  L ("Y={0}" -f ($sy + 8))
+  L ""
+  L "[HeadLine$h]"
+  L "Meter=Shape"
+  L "Group=Menu"
+  L ("Shape=Path P | Fill Color #Red# | StrokeWidth 0")
+  L ("P=8,0 | LineTo {0},0 | LineTo {1},5 | LineTo 0,5 | ClosePath 1" -f ($colW - 30), ($colW - 38))
+  L "X=$cx"
+  L ("Y={0}" -f ($sy + $headH - 4))
+  L ""
   $r = 0
-  foreach ($it in $col.List) {
-    $y = $top + $headH + 6 + $r * $rowH
+  foreach ($it in $sec.List) {
+    $y = $sy + $headH + 6 + $r * $rowH
     $id = $it.Id
     $path = $it.Path
     $label = ($it.Name -replace '#', '##')
@@ -372,4 +403,4 @@ L ""
 
 $ini = $sb.ToString()
 [IO.File]::WriteAllText((Join-Path $skin "Menu.ini"), $ini, [Text.Encoding]::Unicode)
-Write-Host ("Menu built: {0} games, {1} apps." -f $games.Count, $apps.Count)
+Write-Host ("Menu built: " + (($sections | ForEach-Object { "{0} {1}" -f $_.List.Count, $_.Title.ToLower() }) -join ", ") + ".")
