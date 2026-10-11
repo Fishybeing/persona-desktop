@@ -53,6 +53,9 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #ptop { display: flex; align-items: center; gap: 1.2vh; position: relative; }
 #tag { font-family: "P3 Bold", sans-serif; font-size: 1.6vh; letter-spacing: 0.22em; color: #061636; background: var(--accent); padding: 0.2vh 0.8vh; }
 #src { font-size: 1.6vh; letter-spacing: 0.12em; opacity: 0.75; }
+#player #filt { margin-left: auto; width: auto; height: auto; display: block; padding: 0.3vh 1vh; font-family: "P3 Bold", sans-serif; font-size: 1.5vh; letter-spacing: 0.14em; white-space: nowrap; max-width: 46%; overflow: hidden; text-overflow: ellipsis; color: var(--ink); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.3); transform: skewX(-8deg); }
+#player #filt.on { color: #061636; background: var(--accent); border-color: var(--accent); }
+#player #filt:hover { color: #061636; background: var(--accent); }
 #title { font-family: "P3 Display", sans-serif; font-size: 3.3vh; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
 #artist { font-size: 1.9vh; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; color: rgba(242, 249, 255, 0.75); }
 #artist .game { font-family: "P3 Bold", sans-serif; font-size: 2.1vh; letter-spacing: 0.14em; color: var(--accent); }
@@ -96,7 +99,7 @@ body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
 <div id="player">
   <canvas id="viz" width="400" height="160"></canvas>
   <div id="flash"></div>
-  <div id="ptop"><span id="tag">NOW PLAYING</span><span id="src">LOCAL</span></div>
+  <div id="ptop"><span id="tag">NOW PLAYING</span><span id="src">LOCAL</span><button id="filt" title="Click to choose what plays (right-click goes back)">ALL MUSIC</button></div>
   <div id="title">No music yet</div>
   <div id="artist"></div>
   <div id="bar"><div id="fill"></div></div>

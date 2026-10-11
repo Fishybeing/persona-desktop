@@ -120,6 +120,20 @@
     set(k, v) { try { localStorage.setItem("mr_" + k, JSON.stringify(v)); } catch (e) {} }
   };
   let order = [], opos = 0;
+  const gameCount = {};
+  tracks.forEach(x => { if (x.game) gameCount[x.game] = (gameCount[x.game] || 0) + 1; });
+  const bigGames = Object.keys(gameCount).filter(g => gameCount[g] >= 3).sort();
+  const filters = ["ALL"];
+  if (tracks.some(x => /^PERSONA/i.test(x.game || ""))) filters.push("PERSONA");
+  bigGames.forEach(g => filters.push(g));
+  if (tracks.some(x => !bigGames.includes(x.game || "") && !/^PERSONA/i.test(x.game || ""))) filters.push("OTHER");
+  function inFilter(x, f) {
+    if (f === "ALL") return true;
+    if (f === "PERSONA") return /^PERSONA/i.test(x.game || "");
+    if (f === "OTHER") return !bigGames.includes(x.game || "") && !/^PERSONA/i.test(x.game || "");
+    return x.game === f;
+  }
+  let filter = "ALL", pool = [];
   let idx = Math.min(store.get("idx", 0), Math.max(0, tracks.length - 1)), shuffle = store.get("shuf", false), repeat = store.get("rep", true), userVol = store.get("vol", null), muted = store.get("mute", false), pcTrack = null;
   let actx = null, gain = null, analyser = null, freq = null;
 
@@ -163,7 +177,7 @@
   function showLocal() {
     const tr = tracks[idx];
     $("tag").textContent = "NOW PLAYING";
-    $("src").textContent = "LOCAL · " + (idx + 1) + "/" + tracks.length + (grid.bpm ? " · " + grid.bpm + " BPM" : "");
+    $("src").textContent = "LOCAL · " + (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + (grid.bpm ? " · " + grid.bpm + " BPM" : "");
     $("title").textContent = tr.title || tr.file;
     const ar = $("artist");
     ar.textContent = "";
@@ -197,20 +211,42 @@
   }
 
   function reshuffle(first) {
-    order = tracks.map((_, i) => i).filter(i => i !== first);
+    order = pool.filter(i => i !== first);
     for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    order.unshift(first);
-    opos = 0;
+    if (pool.includes(first)) { order.unshift(first); opos = 0; } else opos = -1;
+  }
+
+  function filterLabel(f) {
+    const n = f === "ALL" ? tracks.length : pool.length;
+    return (f === "ALL" ? "ALL MUSIC" : f === "OTHER" ? "OTHER MUSIC" : f) + " \u00b7 " + n;
+  }
+
+  function setFilter(f, fromUser) {
+    filter = filters.includes(f) ? f : "ALL";
+    pool = tracks.map((x, i) => inFilter(x, filter) ? i : -1).filter(i => i >= 0);
+    order = [];
+    store.set("filter", filter);
+    $("filt").textContent = filterLabel(filter);
+    $("filt").classList.toggle("on", filter !== "ALL");
+    if (fromUser && pool.length && !pool.includes(idx)) {
+      const playing = !audio.paused;
+      load(shuffle ? pool[Math.floor(Math.random() * pool.length)] : pool[0], playing);
+    } else if (tracks.length) showLocal();
   }
 
   function nextIdx(dir) {
-    if (!shuffle || tracks.length < 2) return idx + dir;
-    if (order.length !== tracks.length || order[opos] !== idx) reshuffle(idx);
+    if (!pool.length) return idx;
+    if (!shuffle || pool.length < 2) {
+      const p = pool.indexOf(idx);
+      if (p < 0) return pool[0];
+      return pool[(p + dir + pool.length) % pool.length];
+    }
+    if (!order.length || order[opos] !== idx) reshuffle(idx);
     opos += dir;
     if (opos >= order.length) {
       const last = order[order.length - 1];
-      reshuffle(Math.floor(Math.random() * tracks.length));
-      if (order[0] === last) { const j = 1 + Math.floor(Math.random() * (order.length - 1)); [order[0], order[j]] = [order[j], order[0]]; }
+      reshuffle(pool[Math.floor(Math.random() * pool.length)]);
+      if (order[0] === last && order.length > 1) { const j = 1 + Math.floor(Math.random() * (order.length - 1)); [order[0], order[j]] = [order[j], order[0]]; }
     } else if (opos < 0) opos = 0;
     return order[opos];
   }
@@ -243,13 +279,15 @@
   $("mute").addEventListener("click", () => { muted = !muted; if (!muted && vol() === 0) userVol = 30; store.set("mute", muted); store.set("vol", userVol); applyVol(); });
   audio.addEventListener("play", setPlayIcon);
   audio.addEventListener("pause", () => { setPlayIcon(); showIdle(); });
-  audio.addEventListener("ended", () => { if (idx < tracks.length - 1 || repeat || shuffle) load(nextIdx(1), true); });
+  audio.addEventListener("ended", () => { if (pool.indexOf(idx) < pool.length - 1 || repeat || shuffle) load(nextIdx(1), true); });
+  $("filt").addEventListener("click", () => { if (filters.length > 1) setFilter(filters[(filters.indexOf(filter) + 1) % filters.length], true); });
+  $("filt").addEventListener("contextmenu", (e) => { e.preventDefault(); if (filters.length > 1) setFilter(filters[(filters.indexOf(filter) - 1 + filters.length) % filters.length], true); });
   audio.addEventListener("timeupdate", () => {
     $("fill").style.width = audio.duration ? (audio.currentTime / audio.duration * 100) + "%" : "0";
     $("cur").textContent = fmt(audio.currentTime); $("dur").textContent = fmt(audio.duration);
     if (Math.floor(audio.currentTime) % 5 === 0) store.set("pos", audio.currentTime);
   });
-  audio.addEventListener("error", () => { if (tracks.length > 1) setTimeout(() => load(idx + 1, true), 800); });
+  audio.addEventListener("error", () => { if (tracks.length > 1) setTimeout(() => load(nextIdx(1), true), 800); });
 
   const vz = $("viz"), vctx = vz.getContext("2d"), player = $("player");
   const BARS = 48, bars = new Float32Array(BARS), peaks = new Float32Array(BARS), edges = [];
@@ -299,7 +337,7 @@
   function showBpm() {
     if (audio.paused && pcTrack && pcTrack.Title) return;
     if (!tracks.length) return;
-    $("src").textContent = "LOCAL \u00b7 " + (idx + 1) + "/" + tracks.length + (grid.bpm ? " \u00b7 " + grid.bpm + " BPM" : "");
+    $("src").textContent = "LOCAL \u00b7 " + (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + (grid.bpm ? " \u00b7 " + grid.bpm + " BPM" : "");
   }
 
   function applyGrid(file, res) {
@@ -482,6 +520,8 @@
   $("shuf").classList.toggle("on", shuffle);
   $("rep").classList.toggle("on", repeat);
   applyVol();
+  setFilter(store.get("filter", "ALL"), false);
+  if (tracks.length && pool.length && !pool.includes(idx)) idx = pool[0];
   if (tracks.length) { load(idx, false); const p = store.get("pos", 0); audio.addEventListener("loadedmetadata", () => { if (p && p < audio.duration - 2) audio.currentTime = p; }, { once: true }); }
   showIdle();
   setPlayIcon();

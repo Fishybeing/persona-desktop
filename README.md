@@ -12,6 +12,7 @@ Unzip it and double-click **Install.bat**. That's it.
 - Calendar in the top right in the game's style: date, time of day ("After School", "Evening"...), clock, the real moon phase and a countdown to the next full moon.
 - The Dark Hour: from midnight to 1 AM the screen turns green, the clock stops and "DARK HOUR" fades in.
 - Music player in the bottom right with shuffle, repeat, a volume slider (click, drag or scroll), mute, and a visualizer that follows the song.
+- A filter button on the player picks what plays: all music, only Persona, one specific game, or everything else. Shuffle and skip stay inside your pick.
 - Every song gets its BPM worked out the first time it plays, and the player pulses on the beat.
 - Under each song it shows which game it's from (Persona 5, Persona 3 Reload, UNDERTALE...).
 

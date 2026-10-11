@@ -335,7 +335,6 @@ foreach ($col in $cols) {
     L ("MouseOverAction=[!ShowMeter Bar_$id][!SetOption Text_$id FontColor 255,255,255,255][!SetOption Text_$id Padding `"48,7,0,0`"][!UpdateMeter Text_$id][!Redraw]#Tick#")
     L ("MouseLeaveAction=[!HideMeter Bar_$id][!SetOption Text_$id FontColor #Ink#][!SetOption Text_$id Padding `"40,7,0,0`"][!UpdateMeter Text_$id][!Redraw]")
     L ("LeftMouseUpAction=#Confirm#[`"$path`"]")
-    L "ToolTipText=$label"
     L ""
     if ($it.Icon) {
       L "[Icon_$id]"
