@@ -1,0 +1,2 @@
+Put your music in this folder (mp3, m4a, ogg, opus, flac, wav or webm).
+Subfolders are fine. Then run "Update playlist" from the Start menu (Persona Desktop folder).

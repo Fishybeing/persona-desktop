@@ -1,0 +1,45 @@
+{
+  "animated": {
+    "type": "checkbox",
+    "text": "Animated background",
+    "value": true
+  },
+  "darkHour": {
+    "type": "dropdown",
+    "text": "Dark Hour",
+    "value": 0,
+    "items": [
+      "Midnight to 1 AM (real time)",
+      "Always on",
+      "Never"
+    ]
+  },
+  "clock24": {
+    "type": "checkbox",
+    "text": "24-hour clock",
+    "value": true
+  },
+  "showCalendar": {
+    "type": "checkbox",
+    "text": "Show calendar and clock",
+    "value": true
+  },
+  "showPlayer": {
+    "type": "checkbox",
+    "text": "Show music player",
+    "value": true
+  },
+  "volume": {
+    "type": "slider",
+    "text": "Music volume",
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "value": 60
+  },
+  "showCredit": {
+    "type": "checkbox",
+    "text": "Show artist credit",
+    "value": true
+  }
+}

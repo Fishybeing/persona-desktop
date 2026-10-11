@@ -1,0 +1,14 @@
+{
+  "AppVersion": "2.2.1.0",
+  "Title": "Persona 3: Monorail",
+  "Thumbnail": "thumbnail.jpg",
+  "Preview": "thumbnail.jpg",
+  "Desc": "Aigis and the protagonist on the monorail (animated), with a Persona 3 calendar, clock, moon phases and a music player with a beat-synced visualizer. The Dark Hour starts at midnight. Art by @Jurawings1.",
+  "Author": "Fishybeing",
+  "License": "Code: MIT. Artwork by @Jurawings1, animation from MoeWalls.",
+  "Contact": "https://github.com/Fishybeing/persona-desktop",
+  "Type": 2,
+  "FileName": "index.html",
+  "Arguments": "",
+  "IsAbsolutePath": false
+}
