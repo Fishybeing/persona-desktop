@@ -371,10 +371,12 @@
       b.addEventListener("click", (e) => { e.stopPropagation(); setFilter(f, true); closePlist(); });
       box.appendChild(b);
     });
+    const cols = filters.length > 24 ? 3 : 2;
+    box.style.gridTemplateColumns = "repeat(" + cols + ", minmax(0, 1fr))";
+    $("plist").style.width = cols === 3 ? "46vw" : "";
+    $("plist").style.maxWidth = cols === 3 ? "880px" : "";
     $("plist").classList.add("show");
     $("filtMenu").classList.add("open");
-    const cur = box.querySelector(".cur");
-    if (cur) cur.scrollIntoView({ block: "nearest" });
   }
   $("filtMenu").addEventListener("click", (e) => { e.stopPropagation(); if ($("plist").classList.contains("show")) closePlist(); else openPlist(); });
   $("plist").addEventListener("wheel", (e) => e.stopPropagation());

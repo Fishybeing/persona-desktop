@@ -52,7 +52,7 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #ptop { display: flex; align-items: center; gap: 1.2vh; position: relative; }
 #tag { font-family: "P3 Bold", sans-serif; font-size: 1.6vh; letter-spacing: 0.22em; color: #061636; background: var(--accent); padding: 0.2vh 0.8vh; }
 #src { font-size: 1.6vh; letter-spacing: 0.12em; opacity: 0.75; }
-#player #filt { text-transform: uppercase; margin-left: auto; width: auto; height: auto; display: block; padding: 0.3vh 1vh; font-family: "P3 Bold", sans-serif; font-size: 1.5vh; letter-spacing: 0.14em; white-space: nowrap; max-width: 46%; overflow: hidden; text-overflow: ellipsis; color: var(--ink); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.3); transform: skewX(-8deg); }
+#player #filt { text-transform: uppercase; margin-left: auto; width: auto; height: auto; display: block; padding: 0.3vh 1vh; font-family: "P3 Bold", sans-serif; font-size: 1.5vh; letter-spacing: 0.14em; white-space: nowrap; max-width: 46%; overflow: hidden; text-overflow: ellipsis; color: var(--ink); background: rgba(0,0,0,0.35); border: none; transform: skewX(-8deg); }
 #player #filt.on { color: #061636; background: var(--accent); border-color: var(--accent); }
 #player #filt:hover { color: #061636; background: var(--accent); }
 #title { font-family: "P3 Display", sans-serif; font-size: 3.3vh; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
@@ -78,15 +78,22 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #volpct { width: 4.2vh; text-align: right; font-family: "P3 Bold", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 #vol.muted #volfill, #vol.muted #volknob { background: rgba(255,255,255,0.35); }
 #player button.gone { display: none; }
-#player #filtMenu { width: 3vh; height: auto; padding: 0.3vh 0; margin-left: 0.6vh; font-size: 1.5vh; color: var(--ink); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.3); transform: skewX(-8deg); }
-#player #filtMenu.open, #player #filtMenu:hover { color: #061636; background: var(--accent); border-color: var(--accent); }
-#plist { position: fixed; right: 3vw; bottom: calc(6.5vh + 30vh); width: 22vw; min-width: 260px; max-width: 380px; padding: 1.6vh 1.8vh; background: rgba(8, 10, 24, 0.94); border: 1px solid rgba(255,255,255,0.18); border-left: 0.8vh solid var(--accent); box-shadow: 0.8vh 0.8vh 0 rgba(0,0,0,0.5); transform: skewX(-8deg) translateY(2vh); opacity: 0; pointer-events: none; transition: opacity 0.6s ease, transform 0.6s ease; z-index: 11; }
+#ptop #tag { white-space: nowrap; flex: none; }
+#ptop #src { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
+#ptop #filt { flex: none; max-width: 38%; }
+#ptop #filtMenu { flex: none; }
+#ptop { padding-right: 2.6vh; min-width: 0; }
+#player { grid-template-columns: minmax(0, 1fr); }
+#player #filtMenu { width: 3vh; height: auto; padding: 0.3vh 0; margin-left: 0.6vh; font-size: 1.5vh; color: var(--ink); background: rgba(0,0,0,0.35); border: none; transform: skewX(-8deg); }
+#player #filtMenu.open, #player #filtMenu:hover { color: #061636; background: var(--accent); }
+#plist { position: fixed; right: 3vw; bottom: calc(6.5vh + 30vh); width: 34vw; max-width: 640px; padding: 1.6vh 2vh 1.8vh; background: rgba(5, 7, 18, 0.95); border: none; border-left: 0.8vh solid var(--accent); box-shadow: 0.8vh 0.8vh 0 rgba(0,0,0,0.55); transform: skewX(-8deg) translateY(2vh); opacity: 0; pointer-events: none; transition: opacity 0.6s ease, transform 0.6s ease; z-index: 11; }
 #plist.show { opacity: 1; transform: skewX(-8deg) translateY(0); pointer-events: auto; }
 #plist > * { transform: skewX(8deg); }
-#plist .ttl { font-family: "P3 Display", sans-serif; font-size: 2.6vh; color: var(--accent); letter-spacing: 0.06em; margin-bottom: 0.8vh; }
-#plistItems { max-height: 27vh; overflow-y: auto; display: grid; gap: 0.4vh; }
-#plistItems button { all: unset; text-transform: uppercase; cursor: pointer; display: flex; justify-content: space-between; gap: 1vh; padding: 0.6vh 1.2vh; font-family: "P3 Bold", sans-serif; font-size: 1.9vh; letter-spacing: 0.1em; color: var(--ink); background: rgba(255,255,255,0.05); transform: skewX(-8deg); }
-#plistItems button span:last-child { opacity: 0.6; font-variant-numeric: tabular-nums; }
+#plist .ttl { font-family: "P3 Display", sans-serif; font-size: 2.6vh; color: var(--accent); letter-spacing: 0.06em; margin-bottom: 1vh; }
+#plistItems { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2vh 1.4vh; }
+#plistItems button { all: unset; text-transform: uppercase; cursor: pointer; display: flex; justify-content: space-between; gap: 1vh; min-width: 0; padding: 0.55vh 1.1vh; font-family: "P3 Bold", sans-serif; font-size: 1.8vh; letter-spacing: 0.08em; color: var(--ink); transform: skewX(-8deg); }
+#plistItems button span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#plistItems button span:last-child { opacity: 0.55; font-variant-numeric: tabular-nums; }
 #plistItems button:hover { background: var(--accent); color: #061636; }
 #plistItems button.cur { background: var(--red); color: #fff; }
 #plistItems button.cur span:last-child { opacity: 0.9; }
