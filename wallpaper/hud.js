@@ -277,6 +277,66 @@
   $("next").addEventListener("click", () => load(nextIdx(1), true));
   $("prev").addEventListener("click", () => { if (audio.currentTime > 3) audio.currentTime = 0; else load(nextIdx(-1), true); });
   $("shuf").addEventListener("click", () => { shuffle = !shuffle; store.set("shuf", shuffle); $("shuf").classList.toggle("on", shuffle); if (shuffle) reshuffle(idx); });
+  const HELPER = "http://localhost:47823";
+  let helperOk = false, confirmTimer = 0, pendingTrack = null;
+  function checkHelper() {
+    fetch(HELPER + "/ping", { cache: "no-store" }).then(r => r.json()).then(j => {
+      helperOk = !!j.ok;
+      $("del").classList.toggle("gone", !helperOk);
+    }).catch(() => { helperOk = false; $("del").classList.add("gone"); });
+  }
+  checkHelper();
+  setInterval(checkHelper, 30000);
+  function closeConfirm(delay) {
+    clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(() => $("confirm").classList.remove("show"), delay || 0);
+  }
+  function resetConfirm() {
+    $("confirmTtl").textContent = "REMOVE THIS SONG?";
+    $("confirmSub").hidden = false;
+    $("confirmBtns").style.display = "";
+  }
+  $("del").addEventListener("click", () => {
+    if (!tracks.length || !helperOk) return;
+    const tr = tracks[idx];
+    pendingTrack = tr;
+    resetConfirm();
+    $("confirmSong").textContent = (tr.title || tr.file) + (tr.artist ? "  \u00b7  " + tr.artist : "");
+    clearTimeout(confirmTimer);
+    $("confirm").classList.add("show");
+  });
+  $("confirmNo").addEventListener("click", () => closeConfirm(0));
+  $("confirmYes").addEventListener("click", () => {
+    const tr = pendingTrack, i = tracks.indexOf(tr), current = i === idx, wasPlaying = !audio.paused;
+    if (i < 0) { closeConfirm(0); return; }
+    $("confirmBtns").style.display = "none";
+    $("confirmSub").hidden = true;
+    $("confirmTtl").textContent = "REMOVING...";
+    fetch(HELPER + "/remove?file=" + encodeURIComponent(decodeURIComponent(tr.file)), { cache: "no-store" })
+      .then(r => r.json())
+      .then(j => {
+        if (!j.ok) throw new Error(j.error || "failed");
+        if (current) audio.pause();
+        tracks.splice(i, 1);
+        order = [];
+        if (!tracks.length) { showIdle(); }
+        else if (current) {
+          idx = Math.min(i, tracks.length - 1);
+          setFilter(filter, false);
+          const next = pool.find(n => n >= idx);
+          load(next !== undefined ? next : (pool.length ? pool[0] : idx), wasPlaying);
+        } else {
+          if (idx > i) idx--;
+          setFilter(filter, false);
+        }
+        $("confirmTtl").textContent = "REMOVED";
+        closeConfirm(1500);
+      })
+      .catch(() => {
+        $("confirmTtl").textContent = "COULDN'T REMOVE IT";
+        closeConfirm(2500);
+      });
+  });
   $("rep").addEventListener("click", () => { repeat = !repeat; store.set("rep", repeat); $("rep").classList.toggle("on", repeat); });
   $("bar").addEventListener("click", (e) => { const r = $("bar").getBoundingClientRect(); if (audio.duration) audio.currentTime = (e.clientX - r.left) / r.width * audio.duration; });
   const volhit = $("volhit");

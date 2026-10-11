@@ -77,6 +77,20 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #volknob { position: absolute; top: 50%; width: 1.1vh; height: 2.2vh; background: var(--ink); transform: translate(-50%, -50%) skewX(-12deg); box-shadow: 0 0 0.6vh rgba(0,0,0,0.6); }
 #volpct { width: 4.2vh; text-align: right; font-family: "P3 Bold", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 #vol.muted #volfill, #vol.muted #volknob { background: rgba(255,255,255,0.35); }
+#player button.gone { display: none; }
+#player #del:hover { background: var(--red); color: #fff; }
+#confirm { position: fixed; right: 3vw; bottom: calc(6.5vh + 34vh); width: 28vw; min-width: 320px; max-width: 480px; padding: 2vh 2.4vh; background: rgba(8, 8, 12, 0.92); border: 1px solid rgba(255,255,255,0.18); border-left: 0.8vh solid var(--red); box-shadow: 0.8vh 0.8vh 0 rgba(0,0,0,0.5); transform: skewX(-8deg) translateY(2vh); opacity: 0; pointer-events: none; transition: opacity 1s ease, transform 1s ease; z-index: 10; }
+#confirm.show { opacity: 1; transform: skewX(-8deg) translateY(0); pointer-events: auto; }
+#confirm > * { transform: skewX(8deg); }
+#confirm .ttl { font-family: "P3 Display", sans-serif; font-size: 3.4vh; color: var(--red); letter-spacing: 0.04em; text-shadow: 0.3vh 0.3vh 0 #000; }
+#confirm .song { font-family: "P3 Bold", sans-serif; font-size: 2.2vh; margin-top: 0.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#confirm .sub { font-size: 1.6vh; opacity: 0.7; margin-top: 0.6vh; line-height: 1.35; }
+#confirm .btns { display: flex; gap: 1.4vh; margin-top: 1.6vh; }
+#confirm button { all: unset; cursor: pointer; padding: 0.8vh 2.2vh; font-family: "P3 Bold", sans-serif; font-size: 2vh; letter-spacing: 0.14em; transform: skewX(-8deg); }
+#confirmYes { background: var(--red); color: #fff; }
+#confirmYes:hover { background: #fff; color: var(--red); }
+#confirmNo { border: 1px solid rgba(255,255,255,0.45); color: var(--ink); }
+#confirmNo:hover { background: rgba(255,255,255,0.15); }
 #hint { font-size: 1.6vh; opacity: 0.75; position: relative; line-height: 1.35; }
 #credit { position: fixed; left: 1.2vw; bottom: 1vh; font-size: 1.3vh; letter-spacing: 0.08em; color: rgba(242, 249, 255, 0.35); }
 body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
@@ -109,6 +123,7 @@ body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
     <button id="next" title="Next"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
     <button id="shuf" title="Shuffle"><svg viewBox="0 0 24 24"><path d="M14 4h6v6l-2.2-2.2-4.3 4.3-1.6-1.6 4.3-4.3zM4 18.4 15.8 6.6l1.6 1.6L5.6 20zM14 20h6v-6l-2.2 2.2-2.6-2.6-1.6 1.6 2.6 2.6z"/></svg></button>
     <button id="rep" title="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg></button>
+    <button id="del" class="gone" title="Remove this song"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4zM6 9h12l-1.1 12H7.1z"/></svg></button>
   </div>
   <div id="vol">
     <span id="vollabel">VOL</span>
@@ -117,6 +132,12 @@ body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
     <span id="volpct">60</span>
   </div>
   <div id="hint" hidden></div>
+</div>
+<div id="confirm">
+  <div class="ttl" id="confirmTtl">REMOVE THIS SONG?</div>
+  <div class="song" id="confirmSong"></div>
+  <div class="sub" id="confirmSub">It gets moved to Music &rsaquo; Persona Desktop - removed songs, so you can still get it back.</div>
+  <div class="btns" id="confirmBtns"><button id="confirmYes">REMOVE</button><button id="confirmNo">CANCEL</button></div>
 </div>
 <div id="credit">ART BY @JURAWINGS1</div>
 <script src="music/playlist.js"></script>
