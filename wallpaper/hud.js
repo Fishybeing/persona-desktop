@@ -356,6 +356,29 @@
   audio.addEventListener("pause", () => { setPlayIcon(); showIdle(); });
   audio.addEventListener("ended", () => { if (pool.indexOf(idx) < pool.length - 1 || repeat || shuffle) load(nextIdx(1), true); });
   $("filt").addEventListener("click", () => { if (filters.length > 1) setFilter(filters[(filters.indexOf(filter) + 1) % filters.length], true); });
+  function filterName(f) { return f === "ALL" ? "ALL MUSIC" : f === "OTHER" ? "OTHER MUSIC" : f; }
+  function closePlist() { $("plist").classList.remove("show"); $("filtMenu").classList.remove("open"); }
+  function openPlist() {
+    const box = $("plistItems");
+    box.textContent = "";
+    filters.forEach(f => {
+      const b = document.createElement("button");
+      const n = f === "ALL" ? tracks.length : tracks.filter(x => inFilter(x, f)).length;
+      const a1 = document.createElement("span"); a1.textContent = filterName(f);
+      const a2 = document.createElement("span"); a2.textContent = n;
+      b.append(a1, a2);
+      if (f === filter) b.classList.add("cur");
+      b.addEventListener("click", (e) => { e.stopPropagation(); setFilter(f, true); closePlist(); });
+      box.appendChild(b);
+    });
+    $("plist").classList.add("show");
+    $("filtMenu").classList.add("open");
+    const cur = box.querySelector(".cur");
+    if (cur) cur.scrollIntoView({ block: "nearest" });
+  }
+  $("filtMenu").addEventListener("click", (e) => { e.stopPropagation(); if ($("plist").classList.contains("show")) closePlist(); else openPlist(); });
+  $("plist").addEventListener("wheel", (e) => e.stopPropagation());
+  document.addEventListener("mousedown", (e) => { if (!$("plist").contains(e.target) && e.target !== $("filtMenu")) closePlist(); });
   $("filt").addEventListener("contextmenu", (e) => { e.preventDefault(); if (filters.length > 1) setFilter(filters[(filters.indexOf(filter) - 1 + filters.length) % filters.length], true); });
   audio.addEventListener("timeupdate", () => {
     $("fill").style.width = audio.duration ? (audio.currentTime / audio.duration * 100) + "%" : "0";

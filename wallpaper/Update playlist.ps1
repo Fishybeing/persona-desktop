@@ -53,6 +53,7 @@ function Get-Game($text) {
 function Clean-Album($a) {
   if (-not $a -or $a -eq "NA") { return "" }
   $a = $a -replace '\s*[\(\[]?(original\s+)?(game\s+)?(sound\s*track|ost|soundtrack)[\)\]]?.*$', ''
+  $a = $a -replace '\s*[\(\[][^\)\]]*$', ''
   return $a.Trim(" -:")
 }
 
