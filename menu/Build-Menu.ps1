@@ -38,6 +38,7 @@ function Save-Png($bmpSource, $path) {
 
 function Export-Icon($file, $index, $out) {
   if (-not $file -or -not (Test-Path -LiteralPath $file)) { return $false }
+  if ($file.ToLower().EndsWith(".png")) { Copy-Item -LiteralPath $file $out -Force; return $true }
   if ($file.ToLower().EndsWith(".ico")) {
     try {
       $dec = [System.Windows.Media.Imaging.BitmapDecoder]::Create((New-Object Uri $file), "PreservePixelFormat", "OnLoad")
@@ -76,13 +77,14 @@ function Export-ShortcutIcon($path, $out) {
   return (Export-Icon $path 0 $out)
 }
 
-$cfg = @{ personaIconsOnlyInGames = $false; alwaysShowGames = @(); hideSections = @() }
+$cfg = @{ personaIconsOnlyInGames = $false; alwaysShowGames = @(); hideSections = @(); iconOverrides = @{} }
 $cfgFile = Join-Path $PSScriptRoot "menu-settings.json"
 if (Test-Path $cfgFile) {
   $j = Get-Content $cfgFile -Raw | ConvertFrom-Json
   if ($null -ne $j.personaIconsOnlyInGames) { $cfg.personaIconsOnlyInGames = [bool]$j.personaIconsOnlyInGames }
   if ($j.alwaysShowGames) { $cfg.alwaysShowGames = @($j.alwaysShowGames) }
   if ($j.hideSections) { $cfg.hideSections = @($j.hideSections | ForEach-Object { "$_".ToUpper() }) }
+  if ($j.iconOverrides) { $j.iconOverrides.PSObject.Properties | ForEach-Object { $cfg.iconOverrides[$_.Name] = [Environment]::ExpandEnvironmentVariables([string]$_.Value) } }
 }
 $catOrder = "GAMES", "SOCIAL", "INTERNET", "MEDIA", "CREATE", "OFFICE", "TOOLS"
 $catRules = @(
@@ -214,6 +216,16 @@ foreach ($f in $allFiles) {
     if (-not $has) { $has = Export-Icon $f.FullName 0 $png }
     $tgt = if ($f.Extension -eq ".lnk") { $ws.CreateShortcut($f.FullName).TargetPath } else { "" }
     $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $f.FullName; Cat = (Get-Category $name $tgt $game); Icon = $has; Persona = $false }
+}
+
+foreach ($it in $items) {
+  foreach ($k in $cfg.iconOverrides.Keys) {
+    if ($it.Name -like "$k*") {
+      $png = Join-Path $iconDir "$($it.Id).png"
+      if (Export-Icon $cfg.iconOverrides[$k] 0 $png) { $it.Icon = $true; $it.Persona = $true }
+      break
+    }
+  }
 }
 
 $colW = 300; $rowH = 36; $sk = 10; $top = 64; $headH = 46; $pad = 18; $gap = 14
