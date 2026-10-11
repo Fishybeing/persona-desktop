@@ -4,6 +4,14 @@
     "text": "Animated background",
     "value": true
   },
+  "idleMinutes": {
+    "type": "slider",
+    "text": "Use the still picture after this many minutes without the mouse on the desktop (0 = never)",
+    "min": 0,
+    "max": 30,
+    "step": 1,
+    "value": 5
+  },
   "darkHour": {
     "type": "dropdown",
     "text": "Dark Hour",

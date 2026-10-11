@@ -21,9 +21,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #061636; col
 #bg { position: fixed; inset: 0; background: url("background.jpg") center 40% / cover no-repeat; transition: filter 2.5s ease; }
 #bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; opacity: 0; }
 #bg video.on { opacity: 1; }
-body.still #bg { visibility: hidden; }
-#still { position: fixed; inset: 0; background: url("background.jpg") center 40% / cover no-repeat; display: none; transition: filter 2.5s ease; }
-body.still #still { display: block; }
+#still { position: fixed; inset: 0; background: url("background.jpg") center 40% / cover no-repeat; opacity: 0; pointer-events: none; transition: opacity 1.2s ease, filter 2.5s ease; }
+body.still #still { opacity: 1; }
 body.darkhour #still { filter: grayscale(1) sepia(1) hue-rotate(38deg) saturate(2.4) brightness(0.62) contrast(1.15); }
 #shade { position: fixed; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(4,14,40,0.35) 0%, rgba(4,14,40,0) 22%, rgba(4,14,40,0) 62%, rgba(4,14,40,0.55) 100%); }
 #dh { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 2.5s ease; background: radial-gradient(ellipse at 50% 30%, rgba(190,255,110,0.18), rgba(10,40,10,0.55) 70%, rgba(0,10,0,0.75)); mix-blend-mode: multiply; }

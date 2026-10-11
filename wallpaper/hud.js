@@ -25,11 +25,23 @@
     v.addEventListener("ended", () => { if (i === curVid && !fading) { v.currentTime = 0; v.play().catch(() => {}); } });
   });
   if (vids.length) vids[0].classList.add("on");
-  function setAnimated(on) {
-    document.body.classList.toggle("still", !on);
-    if (!vids.length) return;
-    if (on) vids[curVid].play().catch(() => {}); else vids.forEach(v => v.pause());
+  let wantAnim = !flags.includes("still"), idleStill = false, idleMs = 5 * 60000, lastSeen = performance.now(), stillTimer = 0;
+  function applyAnim() {
+    clearTimeout(stillTimer);
+    if (wantAnim && !idleStill) {
+      document.body.classList.remove("still");
+      if (vids.length) vids[curVid].play().catch(() => {});
+    } else {
+      document.body.classList.add("still");
+      stillTimer = setTimeout(() => { if (document.body.classList.contains("still")) vids.forEach(v => v.pause()); }, 1300);
+    }
   }
+  function setAnimated(on) { wantAnim = on; applyAnim(); }
+  function seen() { lastSeen = performance.now(); if (idleStill) { idleStill = false; applyAnim(); } }
+  ["mousemove", "mousedown", "wheel", "keydown"].forEach(ev => window.addEventListener(ev, seen, { passive: true }));
+  setInterval(() => {
+    if (!idleStill && wantAnim && idleMs > 0 && performance.now() - lastSeen > idleMs) { idleStill = true; applyAnim(); }
+  }, 5000);
   let dark = null, audioBands = new Array(64).fill(0), audioSeen = 0;
 
   function isDark(now) {
@@ -508,6 +520,7 @@
     if (name === "darkHour") opts.darkHour = Number(val) || 0;
     else if (name === "volume") { opts.volume = Number(val); if (userVol !== null && userVol !== opts.volume && performance.now() > 4000) { userVol = opts.volume; store.set("vol", userVol); } applyVol(); }
     else if (name === "animated") setAnimated(!!val);
+    else if (name === "idleMinutes") idleMs = Math.max(0, Number(val) || 0) * 60000;
     else if (name in opts) opts[name] = !!val;
     document.body.classList.toggle("noplayer", !opts.showPlayer);
     document.body.classList.toggle("nocal", !opts.showCalendar);

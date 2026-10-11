@@ -44,6 +44,7 @@ For Persona 5 style icons in the menu and on the Recycle Bin and This PC, downlo
 ## Settings
 
 - **Wallpaper:** open Lively, right-click the wallpaper and choose Customize. You can switch the animation off (uses almost no CPU then), change the clock to 12 hour, hide parts, and change when the Dark Hour happens.
+- **Saving power:** if your mouse hasn't been on the desktop for 5 minutes, the wallpaper fades to the still picture and stops the video. Move the mouse over the desktop and it comes back. The music keeps playing. You can change the 5 minutes (or turn it off) in Customize.
 - **Menu and bars:** drag them anywhere. Right-click for Rainmeter's options.
 
 ## Antivirus
