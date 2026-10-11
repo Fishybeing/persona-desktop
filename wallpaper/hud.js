@@ -134,7 +134,8 @@
   let order = [], opos = 0;
   const gameCount = {};
   tracks.forEach(x => { if (x.game) gameCount[x.game] = (gameCount[x.game] || 0) + 1; });
-  const bigGames = Object.keys(gameCount).filter(g => gameCount[g] >= 3).sort();
+  const folderGames = new Set(tracks.filter(x => x.folder && x.game).map(x => x.game));
+  const bigGames = Object.keys(gameCount).filter(g => gameCount[g] >= 3 || folderGames.has(g)).sort();
   const filters = ["ALL"];
   if (tracks.some(x => /^PERSONA/i.test(x.game || ""))) filters.push("PERSONA");
   bigGames.forEach(g => filters.push(g));

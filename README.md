@@ -15,6 +15,7 @@ Unzip it and double-click **Install.bat**. That's it.
 - A filter button on the player picks what plays: all music, only Persona, one specific game, or everything else. Shuffle and skip stay inside your pick.
 - Every song gets its BPM worked out the first time it plays, and the player pulses on the beat.
 - Under each song it shows which game it's from (Persona 5, Persona 3 Reload, UNDERTALE...).
+- Make your own categories: put songs in a new folder inside the music folder (for example `War Music`), run Update playlist, and the folder name becomes its own label and filter choice.
 
 **Persona 5 menu** (top left)
 - Click the red MENU tab to open or close it. It uses the Persona 5 menu font and sounds.
