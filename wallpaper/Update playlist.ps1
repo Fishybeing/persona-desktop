@@ -68,11 +68,12 @@ $files | Sort-Object @{ Expression = { $_.Directory.Name -ne "Persona 3 Reload" 
   $game = Get-Game ($album + " " + $_.BaseName + " " + $_.Directory.Name)
   if (-not $game) { $game = Clean-Album $album }
   $folderCat = $false
+  $exclusive = Test-Path -LiteralPath (Join-Path $_.DirectoryName "only-when-selected.txt")
   if ($_.Directory.FullName -ne $music -and @("Other Music", "Persona 3 Reload") -notcontains $_.Directory.Name) { $game = $_.Directory.Name.ToUpper(); $folderCat = $true }
   if ($game -and $game -eq $title) { $game = "" }
   if (-not $artist -and $_.Directory.FullName -ne $music) { $artist = $_.Directory.Name }
   $rel = $_.FullName.Substring($here.Length + 1) -split '\\' | ForEach-Object { [uri]::EscapeDataString($_) }
-  $list += [ordered]@{ file = ($rel -join '/'); title = $title; artist = $artist; game = $game; folder = $folderCat }
+  $list += [ordered]@{ file = ($rel -join '/'); title = $title; artist = $artist; game = $game; folder = $folderCat; exclusive = $exclusive }
 }
 $json = if ($list.Count) { ConvertTo-Json -InputObject @($list) -Depth 3 } else { "[]" }
 Set-Content -Path (Join-Path $music "playlist.js") -Value ("window.P3_PLAYLIST = " + $json + ";") -Encoding UTF8

@@ -141,6 +141,7 @@
   bigGames.forEach(g => filters.push(g));
   if (tracks.some(x => !bigGames.includes(x.game || "") && !/^PERSONA/i.test(x.game || ""))) filters.push("OTHER");
   function inFilter(x, f) {
+    if (x.exclusive && x.game !== f) return false;
     if (f === "ALL") return true;
     if (f === "PERSONA") return /^PERSONA/i.test(x.game || "");
     if (f === "OTHER") return !bigGames.includes(x.game || "") && !/^PERSONA/i.test(x.game || "");
@@ -230,7 +231,7 @@
   }
 
   function filterLabel(f) {
-    const n = f === "ALL" ? tracks.length : pool.length;
+    const n = pool.length;
     return (f === "ALL" ? "ALL MUSIC" : f === "OTHER" ? "OTHER MUSIC" : f) + " \u00b7 " + n;
   }
 
@@ -363,7 +364,7 @@
     box.textContent = "";
     filters.forEach(f => {
       const b = document.createElement("button");
-      const n = f === "ALL" ? tracks.length : tracks.filter(x => inFilter(x, f)).length;
+      const n = tracks.filter(x => inFilter(x, f)).length;
       const a1 = document.createElement("span"); a1.textContent = filterName(f);
       const a2 = document.createElement("span"); a2.textContent = n;
       b.append(a1, a2);
