@@ -312,6 +312,7 @@
     $("confirmBtns").style.display = "none";
     $("confirmSub").hidden = true;
     $("confirmTtl").textContent = "REMOVING...";
+    if (current) { audio.pause(); audio.removeAttribute("src"); audio.load(); }
     fetch(HELPER + "/remove?file=" + encodeURIComponent(decodeURIComponent(tr.file)), { cache: "no-store" })
       .then(r => r.json())
       .then(j => {
@@ -333,6 +334,7 @@
         closeConfirm(1500);
       })
       .catch(() => {
+        if (current && tracks[i] === tr) load(i, wasPlaying);
         $("confirmTtl").textContent = "COULDN'T REMOVE IT";
         closeConfirm(2500);
       });
