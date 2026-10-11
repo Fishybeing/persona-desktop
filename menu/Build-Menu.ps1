@@ -76,6 +76,13 @@ function Export-ShortcutIcon($path, $out) {
   return (Export-Icon $path 0 $out)
 }
 
+$cfg = @{ personaIconsOnlyInGames = $false; alwaysShowGames = @() }
+$cfgFile = Join-Path $PSScriptRoot "menu-settings.json"
+if (Test-Path $cfgFile) {
+  $j = Get-Content $cfgFile -Raw | ConvertFrom-Json
+  if ($null -ne $j.personaIconsOnlyInGames) { $cfg.personaIconsOnlyInGames = [bool]$j.personaIconsOnlyInGames }
+  if ($j.alwaysShowGames) { $cfg.alwaysShowGames = @($j.alwaysShowGames) }
+}
 $catOrder = "GAMES", "SOCIAL", "INTERNET", "MEDIA", "CREATE", "OFFICE", "TOOLS"
 $catRules = @(
   @("SOCIAL", 'discord|teams|zoom|skype|whatsapp|telegram|slack|signal|voicemod|messenger|guilded|teamspeak|mumble'),
@@ -166,9 +173,10 @@ foreach ($e in $pack) {
   $id = "i" + $items.Count
   $png = Join-Path $iconDir "$id.png"
   $has = Export-Icon (Join-Path $packDir $e.I) 0 $png
+  $persona = $has
   if (-not $has -and $target -notmatch '^[a-z.]+://') { $has = Export-ShortcutIcon $target $png }
   if (-not $has -and $target -like "steam://*" -and $steamRoot) { $has = Export-Icon (Join-Path $steamRoot "steam.exe") 0 $png }
-  $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $target; Cat = (Get-Category $name $target ([bool]$e.G)); Icon = $has }
+  $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $target; Cat = (Get-Category $name $target ([bool]$e.G)); Icon = $has; Persona = $persona }
 }
 $junk = '(?i)^(uninstall|remove)|help|manual|documentation|release notes|website|on the web|faqs?\b|readme|reset preferences|support center|what is new|module docs|odbc|iscsi|component services|computer management|event viewer|performance monitor|print management|resource monitor|security configuration|^services$|system configuration|system information|task scheduler|registry editor|recoverydrive|dfrgui|disk cleanup|memory diagnostics|firewall|administrative tools|character map|^magnify$|^narrator$|on-screen keyboard|voiceaccess|livecaptions|steps recorder|remote desktop|powershell ise|\(x86\)|private browsing|skinned|^run$|administrator|^git (cmd|gui)$|^idle|console rar|intel|logi download|driver|license|changelog'
 $allFiles = @()
@@ -204,13 +212,16 @@ foreach ($f in $allFiles) {
     $has = Export-Icon $iconFile $iconIndex $png
     if (-not $has) { $has = Export-Icon $f.FullName 0 $png }
     $tgt = if ($f.Extension -eq ".lnk") { $ws.CreateShortcut($f.FullName).TargetPath } else { "" }
-    $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $f.FullName; Cat = (Get-Category $name $tgt $game); Icon = $has }
+    $items += [pscustomobject]@{ Id = $id; Name = $name; Path = $f.FullName; Cat = (Get-Category $name $tgt $game); Icon = $has; Persona = $false }
 }
 
 $colW = 300; $rowH = 36; $sk = 10; $top = 64; $headH = 46; $pad = 18; $gap = 14
 $sections = @()
 foreach ($c in $catOrder) {
   $list = @($items | Where-Object { $_.Cat -eq $c } | Sort-Object Name)
+  if ($c -eq "GAMES" -and $cfg.personaIconsOnlyInGames) {
+    $list = @($list | Where-Object { $n = $_.Name; $_.Persona -or ($cfg.alwaysShowGames | Where-Object { $n -like "$_*" }) })
+  }
   if ($list.Count) { $sections += [pscustomobject]@{ Title = $c; List = $list; H = $headH + 6 + $list.Count * $rowH + $gap } }
 }
 function Pack-Sections($n) {
