@@ -78,7 +78,8 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #volpct { width: 4.2vh; text-align: right; font-family: "P3 Bold", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 #vol.muted #volfill, #vol.muted #volknob { background: rgba(255,255,255,0.35); }
 #player button.gone { display: none; }
-#times #bpm { font-family: "P3 Bold", sans-serif; letter-spacing: 0.12em; color: var(--accent); opacity: 1; }
+#times #bpm { font-family: "P3 Bold", sans-serif; letter-spacing: 0.12em; color: #fff; background: var(--red); padding: 0 0.9vh; transform: skewX(-8deg); opacity: 1; }
+#times #bpm:empty { visibility: hidden; }
 #ptop #tag { white-space: nowrap; flex: none; }
 #ptop #src { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
 #ptop #filt { flex: none; max-width: 38%; }
