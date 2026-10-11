@@ -197,6 +197,7 @@
     ar.textContent = "";
     if (tr.game) { const g = document.createElement("span"); g.className = "game"; g.textContent = tr.game; ar.appendChild(g); }
     if (tr.artist) ar.appendChild(document.createTextNode((tr.game ? "  ·  " : "") + tr.artist));
+    updateLike();
     $("hint").hidden = true;
   }
 
@@ -225,8 +226,10 @@
   }
 
   function reshuffle(first) {
-    order = pool.filter(i => i !== first);
-    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    order = pool.filter(i => i !== first)
+      .map(i => ({ i, k: Math.pow(Math.random(), 1 / (isLiked(tracks[i]) ? 1.3 : 1)) }))
+      .sort((a, b) => b.k - a.k)
+      .map(o => o.i);
     if (pool.includes(first)) { order.unshift(first); opos = 0; } else opos = -1;
   }
 
@@ -279,15 +282,31 @@
   $("prev").addEventListener("click", () => { if (audio.currentTime > 3) audio.currentTime = 0; else load(nextIdx(-1), true); });
   $("shuf").addEventListener("click", () => { shuffle = !shuffle; store.set("shuf", shuffle); $("shuf").classList.toggle("on", shuffle); if (shuffle) reshuffle(idx); });
   const HELPER = "http://localhost:47823";
+  let likes = new Set();
+  function trackKey(tr) { try { return decodeURIComponent(tr.file); } catch (e) { return tr.file; } }
+  function isLiked(tr) { return !!tr && likes.has(trackKey(tr)); }
+  function updateLike() {
+    const b = $("like");
+    if (b.classList.contains("pop")) return;
+    const tr = tracks[idx];
+    b.classList.toggle("gone", !helperOk || !tr || isLiked(tr));
+  }
+  fetch("music/likes.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : []).then(a => {
+    if (Array.isArray(a)) likes = new Set(a);
+    order = [];
+    updateLike();
+  }).catch(() => {});
   let helperOk = false, confirmTimer = 0, pendingTrack = null;
   function checkHelper() {
     fetch(HELPER + "/ping", { cache: "no-store" }).then(r => r.json()).then(j => {
       helperOk = !!j.ok;
       $("del").classList.toggle("gone", !helperOk);
-    }).catch(() => { helperOk = false; $("del").classList.add("gone"); });
+      updateLike();
+    }).catch(() => { helperOk = false; $("del").classList.add("gone"); updateLike(); });
   }
   checkHelper();
   setInterval(checkHelper, 30000);
+  $("player").addEventListener("mouseenter", () => { if (!helperOk) checkHelper(); });
   function closeConfirm(delay) {
     clearTimeout(confirmTimer);
     confirmTimer = setTimeout(() => $("confirm").classList.remove("show"), delay || 0);
@@ -297,6 +316,17 @@
     $("confirmSub").hidden = false;
     $("confirmBtns").style.display = "";
   }
+  $("like").addEventListener("click", () => {
+    const tr = tracks[idx], b = $("like");
+    if (!tr || !helperOk || isLiked(tr)) return;
+    const key = trackKey(tr);
+    likes.add(key);
+    b.classList.add("pop");
+    setTimeout(() => { b.classList.remove("pop"); updateLike(); }, 950);
+    fetch(HELPER + "/like?file=" + encodeURIComponent(key), { cache: "no-store" }).then(r => r.json()).then(j => {
+      if (!j.ok) throw new Error("failed");
+    }).catch(() => { likes.delete(key); updateLike(); });
+  });
   $("del").addEventListener("click", () => {
     if (!tracks.length || !helperOk) return;
     const tr = tracks[idx];
