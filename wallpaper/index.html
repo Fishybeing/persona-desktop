@@ -78,11 +78,9 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #volpct { width: 4.2vh; text-align: right; font-family: "P3 Bold", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 #vol.muted #volfill, #vol.muted #volknob { background: rgba(255,255,255,0.35); }
 #player button.gone { display: none; }
-#times #bpm { font-family: "P3 Bold", sans-serif; letter-spacing: 0.12em; color: #fff; background: var(--red); padding: 0 0.9vh; transform: skewX(-8deg); opacity: 1; }
-#times #bpm:empty { visibility: hidden; }
 #ptop #tag { white-space: nowrap; flex: none; }
-#ptop #src { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
-#ptop #filt { flex: none; max-width: 38%; }
+#ptop #src { letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
+#ptop #filt { flex: 0 1 auto; min-width: 0; max-width: 34%; }
 #ptop #filtMenu { flex: none; }
 #ptop { padding-right: 2.6vh; min-width: 0; }
 #player { grid-template-columns: minmax(0, 1fr); }
@@ -140,7 +138,7 @@ body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
   <div id="title">No music yet</div>
   <div id="artist"></div>
   <div id="bar"><div id="fill"></div></div>
-  <div id="times"><span id="cur">0:00</span><span id="bpm"></span><span id="dur">0:00</span></div>
+  <div id="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
   <div id="controls">
     <button id="prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
     <button id="play" title="Play"><svg viewBox="0 0 24 24" id="playicon"><path d="M7 4v16l13-8z"/></svg></button>

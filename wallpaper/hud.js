@@ -191,7 +191,7 @@
   function showLocal() {
     const tr = tracks[idx];
     $("tag").textContent = "NOW PLAYING";
-    $("src").textContent = "LOCAL · " + (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + "";
+    $("src").textContent = (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + (grid.bpm ? " \u00b7 " + grid.bpm + " BPM" : "");
     $("title").textContent = tr.title || tr.file;
     const ar = $("artist");
     ar.textContent = "";
@@ -234,8 +234,7 @@
   }
 
   function filterLabel(f) {
-    const n = pool.length;
-    return (f === "ALL" ? "ALL MUSIC" : f === "OTHER" ? "OTHER MUSIC" : f) + " \u00b7 " + n;
+    return f === "ALL" ? "ALL MUSIC" : f === "OTHER" ? "OTHER MUSIC" : f;
   }
 
   function setFilter(f, fromUser) {
@@ -466,10 +465,9 @@
   const grid = { file: null, beats: null, str: null, bpm: 0, next: 0, half: false };
 
   function showBpm() {
-    $("bpm").textContent = grid.bpm ? grid.bpm + " BPM" : "";
     if (audio.paused && pcTrack && pcTrack.Title) return;
     if (!tracks.length) return;
-    $("src").textContent = "LOCAL \u00b7 " + (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + "";
+    $("src").textContent = (pool.includes(idx) ? (pool.indexOf(idx) + 1) + "/" + pool.length : (idx + 1) + "/" + tracks.length) + (grid.bpm ? " \u00b7 " + grid.bpm + " BPM" : "");
   }
 
   function applyGrid(file, res) {
