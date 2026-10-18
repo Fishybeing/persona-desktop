@@ -116,6 +116,8 @@ body.darkhour.intro #banner { color: rgba(190, 255, 120, 0.3); }
 #hint { font-size: 1.6vh; opacity: 0.75; position: relative; line-height: 1.35; }
 #credit { position: fixed; left: 1.2vw; bottom: 1vh; font-size: 1.3vh; letter-spacing: 0.08em; color: rgba(242, 249, 255, 0.35); }
 body.noplayer #player, body.nocal #cal, body.nocredit #credit { display: none; }
+#pdnote { position: fixed; top: 2.4vh; left: 50%; max-width: 58vw; padding: 1vh 1.8vh; transform: translateX(-50%) skewX(-8deg); background: var(--red); color: #fff; font-family: "P3 Text", sans-serif; font-size: 1.6vh; letter-spacing: 0.04em; line-height: 1.35; box-shadow: 0.5vh 0.5vh 0 rgba(0, 0, 0, 0.55); z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
+#pdnote.on { opacity: 1; pointer-events: auto; }
 </style>
 </head>
 <body class="intro">

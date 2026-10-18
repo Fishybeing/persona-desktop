@@ -11,7 +11,7 @@
   vids.forEach((v, i) => {
     v.addEventListener("play", () => { if ((i !== curVid && !fading) || !animated()) v.pause(); });
     v.addEventListener("timeupdate", () => {
-      if (i !== curVid || fading || !v.duration || v.currentTime < v.duration - FADE - 0.35) return;
+      if (single || i !== curVid || fading || !v.duration || v.currentTime < v.duration - FADE - 0.35) return;
       fading = true;
       const n = vids[1 - curVid];
       n.style.transition = "none";
@@ -26,9 +26,11 @@
   });
   if (vids.length) vids[0].classList.add("on");
   let wantAnim = !flags.includes("still"), idleStill = false, idleMs = 5 * 60000, lastSeen = performance.now(), stillTimer = 0;
+  let single = false, strikes = 0, gaveUp = false, livelyPaused = false, lastT = -1, lastMove = performance.now(), visibleAt = performance.now();
   function applyAnim() {
     clearTimeout(stillTimer);
     if (wantAnim && !idleStill) {
+      lastMove = performance.now();
       document.body.classList.remove("still");
       if (vids.length) vids[curVid].play().catch(() => {});
     } else {
@@ -42,6 +44,113 @@
   setInterval(() => {
     if (!idleStill && wantAnim && idleMs > 0 && performance.now() - lastSeen > idleMs) { idleStill = true; applyAnim(); }
   }, 5000);
+  const diagLog = [], diagStart = Date.now(), decodeInfo = {};
+  let gpuName = "";
+  function diag(msg) {
+    diagLog.push(((Date.now() - diagStart) / 1000).toFixed(1) + "s " + msg);
+    if (diagLog.length > 300) diagLog.splice(0, diagLog.length - 300);
+  }
+  window.addEventListener("error", (e) => diag("script error: " + e.message + " at " + String(e.filename || "").split("/").pop() + ":" + e.lineno));
+  window.addEventListener("unhandledrejection", (e) => diag("unhandled promise: " + (e.reason && (e.reason.message || e.reason))));
+  const MEDIA_ERR = ["", "aborted", "network error", "decode error", "format not supported"];
+  function note(text) {
+    let n = $("pdnote");
+    if (!n) {
+      n = document.createElement("div");
+      n.id = "pdnote";
+      n.addEventListener("click", () => n.classList.remove("on"));
+      document.body.appendChild(n);
+    }
+    n.textContent = text;
+    requestAnimationFrame(() => n.classList.add("on"));
+  }
+  function goSingle(why) {
+    if (single || !vids.length) return;
+    single = true;
+    fading = false;
+    const keep = vids[curVid], other = vids[1 - curVid];
+    keep.loop = true;
+    keep.style.transition = "none";
+    keep.style.zIndex = 2;
+    keep.classList.add("on");
+    if (other) { other.pause(); other.classList.remove("on"); other.removeAttribute("src"); other.load(); }
+    diag("single video mode: " + why);
+  }
+  function giveUp(why) {
+    if (gaveUp) return;
+    gaveUp = true;
+    diag("gave up on the animation: " + why);
+    wantAnim = false;
+    applyAnim();
+    note("The animated background couldn't play (" + why + "), so the picture is showing. To get help: Start > Persona Desktop > Get log");
+  }
+  function strike(why) {
+    strikes++;
+    diag("video problem " + strikes + ": " + why);
+    const v = vids[curVid];
+    if (strikes === 1) v.play().catch(err => diag("play failed: " + err.message));
+    else if (strikes === 2) { goSingle(why); v.play().catch(err => diag("play failed: " + err.message)); }
+    else if (strikes === 3) { const at = v.currentTime; v.load(); v.currentTime = at; v.play().catch(err => diag("play failed: " + err.message)); }
+    else giveUp(why);
+    lastMove = performance.now();
+  }
+  vids.forEach((v, i) => {
+    v.addEventListener("error", () => {
+      if (!v.getAttribute("src")) return;
+      const e = v.error, why = e ? (MEDIA_ERR[e.code] || "error " + e.code) : "unknown error";
+      diag("video " + i + " " + why + (e && e.message ? ": " + e.message : ""));
+      if (i !== curVid) { goSingle("second video: " + why); return; }
+      if (single) { giveUp(why); return; }
+      goSingle(why);
+      v.load();
+      v.play().catch(err => diag("play failed: " + err.message));
+    });
+    ["stalled", "waiting", "emptied"].forEach(ev => v.addEventListener(ev, () => diag("video " + i + " " + ev + " at " + v.currentTime.toFixed(2) + "s")));
+    v.addEventListener("loadedmetadata", () => {
+      diag("video " + i + " " + v.videoWidth + "x" + v.videoHeight + ", " + v.duration.toFixed(2) + "s");
+      if (v.videoHeight > 1200) goSingle("video is " + v.videoHeight + "p");
+    });
+  });
+  document.addEventListener("visibilitychange", () => { visibleAt = performance.now(); diag("page " + document.visibilityState); });
+  window.livelyWallpaperPlaybackChanged = function (data) {
+    try { livelyPaused = !!JSON.parse(data).IsPaused; } catch (e) { livelyPaused = false; }
+    lastMove = performance.now();
+    diag(livelyPaused ? "paused by Lively" : "resumed by Lively");
+  };
+  setInterval(() => {
+    if (!vids.length || gaveUp) return;
+    const v = vids[curVid], now = performance.now();
+    if (v.currentTime !== lastT) { lastT = v.currentTime; lastMove = now; return; }
+    if (!animated() || livelyPaused || document.hidden || fading || now - visibleAt < 6000 || now - lastMove < 6000) return;
+    strike(v.paused ? "stopped playing" : "frozen at " + v.currentTime.toFixed(2) + "s (ready state " + v.readyState + ")");
+  }, 2000);
+  try {
+    const gl = document.createElement("canvas").getContext("webgl");
+    const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+    gpuName = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : (gl ? gl.getParameter(gl.RENDERER) : "no WebGL");
+  } catch (e) { gpuName = "unknown"; }
+  if (navigator.mediaCapabilities) {
+    [["1080p60", 1920, 1080, "avc1.640028", 12e6], ["4K60", 3840, 2160, "avc1.4d4033", 40e6]].forEach(([k, w, h, c, b]) => {
+      navigator.mediaCapabilities.decodingInfo({ type: "file", video: { contentType: 'video/mp4; codecs="' + c + '"', width: w, height: h, bitrate: b, framerate: 60 } })
+        .then(r => { decodeInfo[k] = { supported: r.supported, smooth: r.smooth, hardware: r.powerEfficient }; }).catch(() => {});
+    });
+  }
+  window.__pdDiag = () => ({
+    userAgent: navigator.userAgent,
+    gpu: gpuName,
+    decode: decodeInfo,
+    screen: screen.width + "x" + screen.height + " at " + devicePixelRatio + "x",
+    page: document.visibilityState,
+    body: document.body.className,
+    single, strikes, gaveUp, wantAnim, idleStill, livelyPaused,
+    videos: vids.map((v, i) => {
+      const q = v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : {};
+      return { i, current: i === curVid, src: v.getAttribute("src"), size: v.videoWidth + "x" + v.videoHeight, time: +v.currentTime.toFixed(2), duration: v.duration, paused: v.paused, readyState: v.readyState, networkState: v.networkState, error: v.error ? v.error.code + " " + v.error.message : null, frames: q.totalVideoFrames, dropped: q.droppedVideoFrames };
+    }),
+    log: diagLog.slice()
+  });
+  diag("started, " + vids.length + " video elements");
+
   let dark = null, audioBands = new Array(64).fill(0), audioSeen = 0;
 
   function isDark(now) {

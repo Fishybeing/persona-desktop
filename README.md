@@ -49,6 +49,12 @@ For Persona 5 style icons in the menu and on the Recycle Bin and This PC, downlo
 - **Menu and bars:** drag them anywhere. Right-click for Rainmeter's options.
 - **Only Persona games:** to hide games that don't have a Persona 5 icon, create `menu-settings.json` in `%LOCALAPPDATA%\PersonaDesktop\menu` with `{ "personaIconsOnlyInGames": true, "alwaysShowGames": ["Farming Simulator"] }` (list any games you want to keep anyway), then click UPDATE LIST. Add `"hideSections": ["TOOLS"]` to the same file to hide whole sections, and `"iconOverrides": { "App name": "C:\path\icon.png" }` to give any app your own icon (.png or .ico).
 
+## Something not working?
+
+- **The animation stops and the still picture shows after a few minutes:** that's the power saving above. Move the mouse over the desktop, or set the minutes to 0 in Customize to turn it off.
+- **The animation freezes or won't play at all:** run Install.bat again. Version 1.5 shrinks the video to 1080p so slower PCs can play it, and the wallpaper now switches to a lighter mode by itself if the video struggles. If it still can't play, a red note at the top of the screen says why.
+- **Anything else:** open Start > Persona Desktop > **Get log** (or run `Get log.bat` in the downloaded folder if setup didn't finish). It makes `PersonaDesktop-log.zip` on your Desktop with your PC info, the install log, Lively's logs and a 20 second test of the wallpaper. Send that zip along with what went wrong. The wallpaper restarts during the test, so your music pauses for a moment. Your Windows user name is removed from the log.
+
 ## Antivirus
 
 The installer is a plain PowerShell script that isn't code-signed, so some antivirus programs get nervous about it. Everything it does is in [`setup/install.ps1`](setup/install.ps1) if you want to read it first.

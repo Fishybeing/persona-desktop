@@ -9,8 +9,21 @@ $ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
 $monorailPage = "https://moewalls.com/anime/yuki-x-aigis-in-the-train-persona-3-reload-live-wallpaper/"
 $stillUrl = "https://w.wallhaven.cc/full/k8/wallhaven-k8zd97.jpg"
 
+$version = "1.5.0"
+
 function Step($m) { Write-Host ""; Write-Host ">> $m" -ForegroundColor Red }
 function Info($m) { Write-Host "   $m" }
+
+trap {
+  Write-Host ""
+  Write-Host "  SETUP FAILED  " -ForegroundColor White -BackgroundColor DarkRed
+  Write-Host "   $($_.Exception.Message)"
+  Write-Host "   $($_.InvocationInfo.PositionMessage)"
+  Write-Host ""
+  Write-Host "   To get help, run 'Get log.bat' in this folder and send the PersonaDesktop-log.zip it puts on your Desktop."
+  try { Stop-Transcript | Out-Null } catch { }
+  exit 1
+}
 
 if ($TestRoot) {
   $local = Join-Path $TestRoot "Local"; $roaming = Join-Path $TestRoot "Roaming"; $docs = Join-Path $TestRoot "Documents"
@@ -29,7 +42,9 @@ $rmExe = Join-Path $env:ProgramFiles "Rainmeter\Rainmeter.exe"
 $rmIni = Join-Path $roaming "Rainmeter\Rainmeter.ini"
 $stateFile = Join-Path $app "state.json"
 New-Item -ItemType Directory -Force $app | Out-Null
-$state = @{ wallpaper = $wpDir; startupShortcut = $false; icons = @{} }
+try { Start-Transcript -Path (Join-Path $app "install-log.txt") -Force | Out-Null } catch { }
+Write-Host "Persona Desktop $version, installing from $src"
+$state =@{ wallpaper = $wpDir; startupShortcut = $false; icons = @{} }
 if (Test-Path $stateFile) {
   $old = Get-Content $stateFile -Raw | ConvertFrom-Json
   $state.startupShortcut = [bool]$old.startupShortcut
@@ -91,11 +106,18 @@ if (-not (Test-Path $still)) {
 }
 $video = Join-Path $wpDir "background.mp4"
 if (-not (Test-Path $video) -or (Get-Item $video).Length -lt 1000000) {
-  Info "Downloading the animated version from MoeWalls (about 65 MB)..."
+  Info "Downloading the animated version from MoeWalls (about 60 MB)..."
   $page = Invoke-WebRequest -UseBasicParsing -Uri $monorailPage -UserAgent $ua
   if ($page.Content -notmatch 'id="moe-download"[^>]*data-url="([^"]+)"') { throw "Couldn't find the video link on MoeWalls." }
   Get-File ("https://go.moewalls.com/download.php?video=" + $Matches[1]) $video $monorailPage
 }
+Info "Checking the video size (big videos get shrunk to 1080p so they play smoothly)..."
+$ErrorActionPreference = "Continue"
+$conv = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $src "setup\Convert-Video.ps1") -Path $video 2>&1
+$convOk = $LASTEXITCODE -eq 0
+$ErrorActionPreference = "Stop"
+$conv | ForEach-Object { Info "$_" }
+if (-not $convOk) { Info "Couldn't shrink the video, so the wallpaper will play the big one in a lighter mode." }
 $thumb = Join-Path $wpDir "thumbnail.jpg"
 if (-not (Test-Path $thumb)) {
   $img = [System.Drawing.Image]::FromFile($still)
@@ -201,7 +223,10 @@ $sm = Join-Path $startMenu "Persona Desktop"
 New-Item -ItemType Directory -Force $sm | Out-Null
 Copy-Item (Join-Path $src "setup\uninstall.ps1") $app -Force
 Copy-Item (Join-Path $src "Uninstall.bat") $app -Force
+Copy-Item (Join-Path $src "setup\collect-log.ps1") $app -Force
+Copy-Item (Join-Path $src "Get log.bat") $app -Force
 $links = @(
+  @("Get log", (Join-Path $app "Get log.bat"), ""),
   @("Music folder", (Join-Path $env:WINDIR "explorer.exe"), ('"' + (Join-Path $wpDir "music") + '"')),
   @("Update playlist", (Join-Path $wpDir "Update playlist.bat"), ""),
   @("Update menu", (Join-Path $menuApp "Update menu.bat"), ""),
@@ -221,3 +246,5 @@ Info "Put your music in: $(Join-Path $wpDir 'music')"
 Info "Then open Start > Persona Desktop > Update playlist."
 Info "Click the red MENU tab on your desktop to open your apps."
 Info "Wallpaper options (clock, Dark Hour, animation) are in Lively > Customize."
+Info "If something doesn't work: Start > Persona Desktop > Get log, and send the zip it makes."
+try { Stop-Transcript | Out-Null } catch { }
