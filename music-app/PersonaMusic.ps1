@@ -25,7 +25,31 @@ $appData = Join-Path $env:LOCALAPPDATA "PersonaMusic"
 New-Item -ItemType Directory -Force $appData | Out-Null
 $settingsFile = Join-Path $appData "settings.json"
 $livelyData = Join-Path $env:LOCALAPPDATA "Lively Wallpaper"
-$livelyExe = Join-Path $env:LOCALAPPDATA "Programs\Lively Wallpaper\Lively.exe"
+function Find-LivelyExe {
+  $running = Get-Process Lively, Lively.Player.WebView2 -ErrorAction SilentlyContinue | Where-Object { $_.Path } | Select-Object -First 1
+  if ($running) {
+    $dir = Split-Path $running.Path
+    for ($i = 0; $i -lt 4 -and $dir; $i++) {
+      $c = Join-Path $dir "Lively.exe"
+      if ((Test-Path $c) -and $c -notlike "*\WindowsApps\*") { return $c }
+      $dir = Split-Path $dir
+    }
+  }
+  $paths = @(
+    (Join-Path $env:LOCALAPPDATA "Programs\Lively Wallpaper\Lively.exe"),
+    (Join-Path $env:ProgramFiles "Lively Wallpaper\Lively.exe"),
+    (Join-Path ${env:ProgramFiles(x86)} "Lively Wallpaper\Lively.exe")
+  )
+  foreach ($root in "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall") {
+    Get-ItemProperty "$root\*" -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "Lively Wallpaper*" } | ForEach-Object {
+      if ($_.InstallLocation) { $paths += Join-Path $_.InstallLocation "Lively.exe" }
+      if ($_.DisplayIcon) { $paths += Join-Path (Split-Path ($_.DisplayIcon -replace '"', '' -replace ',\d+$', '')) "Lively.exe" }
+    }
+  }
+  $paths += Get-ChildItem (Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps") -Recurse -Filter "Lively*.exe" -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike "*Player*" } | ForEach-Object { $_.FullName }
+  foreach ($p in $paths) { if ($p -and (Test-Path -LiteralPath $p)) { return $p } }
+  return $null
+}
 $exts = ".mp3", ".m4a", ".aac", ".ogg", ".opus", ".flac", ".wav", ".webm"
 $mainFolders = "Other Music", "Persona 3 Reload"
 $removedDir = Join-Path ([Environment]::GetFolderPath("MyMusic")) "Persona Desktop - removed songs"
@@ -595,7 +619,8 @@ $btnRemove.Add_Click({
 })
 
 $btnReload.Add_Click({
-  if (-not (Test-Path $livelyExe)) { Say "Lively isn't installed where expected." -Bad; return }
+  $livelyExe = Find-LivelyExe
+  if (-not $livelyExe) { Say "Couldn't find Lively Wallpaper. Open Lively from the Start menu, then click this again." -Bad; return }
   Say "Reloading the wallpaper..."
   $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
   Start-Process $livelyExe -ArgumentList "closewp --monitor -1" -WindowStyle Hidden -Wait
