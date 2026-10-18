@@ -38,6 +38,20 @@ The player doesn't come with music. Put your own files (mp3, m4a, ogg, opus, fla
 
 If you have [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and your files came from YouTube (the file name ends with the video ID in brackets), Update playlist also looks up which game each song is from.
 
+## Optional: Persona Music app
+
+An easier way to add songs, as a separate download so it's only there if you want it:
+
+### [⬇ Download PersonaMusic.zip](https://github.com/Fishybeing/persona-desktop/releases/latest/download/PersonaMusic.zip)
+
+Install Persona Desktop first, then unzip this and double-click **Install.bat**. Open **Persona Music** from the Start menu and:
+- drag songs or whole folders onto it,
+- or paste a YouTube or YouTube Music link (a song, an album or a playlist) and click Download. It installs yt-dlp the first time,
+- pick which playlist new songs go in, or make a new one (it can be "only when picked", like elevator music),
+- search your songs and remove the ones you don't want (they go to `Music\Persona Desktop - removed songs`).
+
+Click **RELOAD WALLPAPER** when you're done so the player picks up the new songs. To remove the app, run Uninstall.bat. Your songs stay where they are.
+
 ## Optional: Persona 5 icons
 
 For Persona 5 style icons in the menu and on the Recycle Bin and This PC, download [FrozenVayne's Persona 5 Desktop Icon Pack](https://www.deviantart.com/frozenvayne/art/Persona-5-Desktop-Icon-Pack-Version-1-0-747871613) (needs a free DeviantArt account), leave the zip in your Downloads folder and run Install.bat again.
