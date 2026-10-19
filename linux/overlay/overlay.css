@@ -1,0 +1,39 @@
+@font-face { font-family: "Personified UX"; src: url("{RES}/menu/Fonts/PersonifiedUXRegular.ttf") format("truetype"); }
+@font-face { font-family: "PD Roboto Condensed"; src: url("{RES}/menu/Fonts/RobotoCondensed-Bold.ttf") format("truetype"); font-weight: 700; }
+@font-face { font-family: "Cartoonist"; src: url("{RES}/system/Cartoonistkooky-p9za.otf") format("opentype"); }
+
+.pd-root { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+.pd-root > * { pointer-events: auto; }
+.pd-shape { position: absolute; overflow: visible; pointer-events: none; }
+
+.pd-menu { position: absolute; left: 110px; top: 36px; width: 0; height: 0; user-select: none; }
+.pd-tab { position: absolute; left: 0; top: 0; width: 182px; height: 44px; cursor: pointer; }
+.pd-tabshadow polygon { fill: rgba(0, 0, 0, 0.78); }
+.pd-tabfill polygon { fill: rgb(229, 25, 28); }
+.pd-tab.hover .pd-tabfill polygon { fill: #fff; }
+.pd-tabtext { position: absolute; left: 40px; top: 4px; font: 32px "Personified UX", sans-serif; line-height: 1.1; color: #fff; text-shadow: 1px 1px 0 #000; pointer-events: none; }
+.pd-tab.hover .pd-tabtext { color: rgb(10, 10, 10); text-shadow: none; }
+
+.pd-panel { position: absolute; left: 0; top: 0; display: none; }
+.pd-menu.open .pd-panel { display: block; }
+.pd-panelbg polygon { fill: rgba(10, 10, 10, 0.84); stroke: rgb(229, 25, 28); stroke-width: 3; }
+.pd-head { position: absolute; font: 29px "Personified UX", sans-serif; line-height: 1.1; color: #fff; white-space: nowrap; }
+.pd-headline polygon { fill: rgb(229, 25, 28); }
+.pd-bar { visibility: hidden; }
+.pd-bar.on { visibility: visible; }
+.pd-bar polygon { fill: rgb(229, 25, 28); }
+.pd-item { position: absolute; box-sizing: border-box; padding: 7px 0 0 40px; font: 700 18.7px "PD Roboto Condensed", "Roboto Condensed", sans-serif; line-height: 1.1; text-transform: uppercase; color: rgb(245, 245, 245); white-space: nowrap; overflow: hidden; cursor: pointer; }
+.pd-item span { display: block; overflow: hidden; }
+.pd-item.on { padding-left: 48px; color: #fff; }
+.pd-icon { position: absolute; width: 26px; height: 26px; object-fit: contain; pointer-events: none; }
+.pd-link { position: absolute; padding: 2px 4px; font: 700 13.3px "PD Roboto Condensed", "Roboto Condensed", sans-serif; color: rgb(170, 170, 170); cursor: pointer; white-space: nowrap; }
+.pd-link:hover { color: rgb(229, 25, 28); }
+
+.pd-sys { position: absolute; left: 30px; top: 750px; width: 287px; height: 258px; user-select: none; cursor: default; }
+.pd-sysbg { position: absolute; left: 0; top: 0; pointer-events: none; }
+.pd-num { position: absolute; width: 120px; text-align: right; font: italic 37px "Cartoonist", sans-serif; line-height: 1.15; transform: rotate(-11deg); transform-origin: 100% 0; pointer-events: none; }
+.pd-cpu { left: 3px; top: 150px; color: rgb(106, 254, 221); }
+.pd-ram { left: 88px; top: 134px; color: rgb(254, 100, 231); }
+.pd-meter { position: absolute; height: 5px; width: 0; background-size: 150px 5px; background-repeat: no-repeat; transition: width 0.6s ease; pointer-events: none; }
+.pd-cpubar { left: 62px; top: 177px; }
+.pd-rambar { left: 84px; top: 184px; }

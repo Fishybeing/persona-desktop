@@ -2,6 +2,13 @@
   const $ = (id) => document.getElementById(id);
   const opts = { darkHour: 0, showCalendar: true, showPlayer: true, showCredit: true, clock24: true, volume: 60 };
   const flags = location.hash.replace("#", "").split(",");
+  const rec = window.PD_RECORD || null;
+  function clockNow() {
+    if (!rec || !rec.time) return new Date();
+    const t = String(rec.time).split(":"), d = rec.date ? new Date(rec.date + "T00:00:00") : new Date();
+    d.setHours(Number(t[0]) || 0, Number(t[1]) || 0, 0, 0);
+    return d;
+  }
   const forced = flags.includes("darkhour") ? "darkhour" : flags.includes("normal") ? "normal" : "";
   if (flags.includes("notrans")) document.documentElement.classList.add("notrans");
   if (flags.includes("still")) document.body.classList.add("still");
@@ -150,6 +157,14 @@
     log: diagLog.slice()
   });
   diag("started, " + vids.length + " video elements");
+  if (rec && vids.length) {
+    idleMs = 0;
+    goSingle("recording mode");
+    const v = vids[curVid], phase = () => (Date.now() / 1000 + (Number(rec.offset) || 0)) % v.duration;
+    const sync = () => { if (!v.duration || fading) return; const p = phase(); if (Math.abs(v.currentTime - p) > 0.25) { v.currentTime = p; diag("recording sync to " + p.toFixed(2) + "s"); } };
+    v.addEventListener("loadedmetadata", sync);
+    setInterval(sync, 2000);
+  }
 
   let dark = null, audioBands = new Array(64).fill(0), audioSeen = 0;
 
@@ -214,7 +229,7 @@
   }
 
   function tickCal() {
-    const d = new Date();
+    const d = clockNow();
     setMode(isDark(d));
     $("md").textContent = (d.getMonth() + 1) + "/" + d.getDate();
     $("dow").textContent = DOW[d.getDay()];
