@@ -298,6 +298,12 @@
       gain.connect(actx.destination);
       audio.volume = 1;
       applyVol();
+      // WebKitGTK stalls an element that had already loaded before it was hooked into Web Audio; reloading it fixes that.
+      if (!window.chrome && audio.readyState > 0) {
+        const at = audio.currentTime;
+        audio.load();
+        if (at) audio.addEventListener("loadedmetadata", () => { audio.currentTime = at; }, { once: true });
+      }
     } catch (e) { actx = null; gain = null; analyser = null; }
   }
   function wake() { initAudioGraph(); return actx && actx.state === "suspended" ? actx.resume().catch(() => {}) : Promise.resolve(); }

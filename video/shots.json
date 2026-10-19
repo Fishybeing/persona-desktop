@@ -24,7 +24,7 @@
       "platforms": ["linux"],
       "start": [1180, 560],
       "steps": [
-        ["wait", 0.8], ["move", 1447, 884, 1.0], ["wait", 0.3], ["click", "PLAY"], ["wait", 2.4],
+        ["wait", 0.8], ["move", 1443, 917, 1.0], ["wait", 0.3], ["click", "PLAY"], ["wait", 2.4],
         ["move", 1846, 732, 0.9], ["wait", 0.3], ["click", "LISTS"], ["wait", 2.2],
         ["move", 1180, 560, 0.8], ["click", "AWAY"], ["wait", 1.2]
       ]
