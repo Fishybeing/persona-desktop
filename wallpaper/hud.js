@@ -300,7 +300,9 @@
       applyVol();
     } catch (e) { actx = null; gain = null; analyser = null; }
   }
-  function wake() { initAudioGraph(); if (actx && actx.state === "suspended") actx.resume().catch(() => {}); }
+  function wake() { initAudioGraph(); return actx && actx.state === "suspended" ? actx.resume().catch(() => {}) : Promise.resolve(); }
+  // WebKitGTK leaves the song stuck at 0:00 if play() runs before the audio graph has resumed, so wait for it.
+  function playNow() { wake().then(() => audio.play().catch(() => {})); }
 
   function fmt(s) { if (!isFinite(s)) return "0:00"; s = Math.floor(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
   const SPEAKER = '<path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7l-1.4-1.4a3 3 0 0 0 0-4.2zM18.4 6a8.5 8.5 0 0 1 0 12L17 16.6a6.5 6.5 0 0 0 0-9.2z"/>';
@@ -353,7 +355,7 @@
     analyzeTrack(tracks[idx].file);
     store.set("idx", idx);
     showLocal();
-    if (autoplay) { wake(); audio.play().catch(() => {}); }
+    if (autoplay) playNow();
   }
 
   function reshuffle(first) {
@@ -404,9 +406,8 @@
 
   $("play").addEventListener("click", () => {
     if (!tracks.length) return;
-    wake();
     if (!audio.src) load(idx, true);
-    else if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+    else if (audio.paused) playNow(); else audio.pause();
   });
   $("next").addEventListener("click", () => load(nextIdx(1), true));
   $("prev").addEventListener("click", () => { if (audio.currentTime > 3) audio.currentTime = 0; else load(nextIdx(-1), true); });

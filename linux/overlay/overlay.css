@@ -19,8 +19,8 @@
 .pd-tabtext { position: absolute; left: 40px; top: 4px; font: 32px "Personified UX", sans-serif; line-height: 1.1; color: #fff; text-shadow: 1px 1px 0 #000; pointer-events: none; }
 .pd-tab.hover .pd-tabtext { color: rgb(10, 10, 10); text-shadow: none; }
 
-.pd-panel { position: absolute; left: 0; top: 0; display: none; }
-.pd-menu.open .pd-panel { display: block; }
+.pd-panel { position: absolute; left: 0; top: 0; visibility: hidden; }
+.pd-menu.open .pd-panel { visibility: visible; }
 .pd-panelbg polygon { fill: rgba(10, 10, 10, 0.84); stroke: rgb(229, 25, 28); stroke-width: 3; }
 .pd-head { position: absolute; font: 29px "Personified UX", sans-serif; line-height: 1.1; color: #fff; white-space: nowrap; }
 .pd-headline polygon { fill: rgb(229, 25, 28); }
