@@ -157,11 +157,12 @@
     log: diagLog.slice()
   });
   diag("started, " + vids.length + " video elements");
-  if (rec && vids.length) {
-    idleMs = 0;
+  if (rec) idleMs = 0;
+  if (rec && rec.sync && vids.length) {
     goSingle("recording mode");
-    const v = vids[curVid], phase = () => (Date.now() / 1000 + (Number(rec.offset) || 0)) % v.duration;
-    const sync = () => { if (!v.duration || fading) return; const p = phase(); if (Math.abs(v.currentTime - p) > 0.25) { v.currentTime = p; diag("recording sync to " + p.toFixed(2) + "s"); } };
+    const v = vids[curVid], loop = () => Math.min(v.duration, Number(rec.loop) || v.duration);
+    const phase = () => (Date.now() / 1000 + (Number(rec.offset) || 0)) % loop();
+    const sync = () => { if (!v.duration || fading) return; const p = phase(); if (Math.abs(v.currentTime - p) > 0.1) { v.currentTime = p; diag("recording sync to " + p.toFixed(2) + "s"); } };
     v.addEventListener("loadedmetadata", sync);
     setInterval(sync, 2000);
   }
@@ -273,6 +274,12 @@
   }
   let filter = "ALL", pool = [];
   let idx = Math.min(store.get("idx", 0), Math.max(0, tracks.length - 1)), shuffle = store.get("shuf", false), repeat = store.get("rep", true), userVol = store.get("vol", null), muted = store.get("mute", false), pcTrack = null;
+  if (rec) {
+    shuffle = false; repeat = true; userVol = rec.volume === undefined ? 60 : rec.volume; muted = false;
+    const want = String(rec.song || "").toLowerCase(), hit = tracks.findIndex(x => (x.title + " " + x.file).toLowerCase().includes(want));
+    idx = want && hit >= 0 ? hit : 0;
+    store.set("pos", 0); store.set("filter", "ALL");
+  }
   let actx = null, gain = null, analyser = null, freq = null;
 
   function initAudioGraph() {
@@ -783,7 +790,7 @@
     if (name === "darkHour") opts.darkHour = Number(val) || 0;
     else if (name === "volume") { opts.volume = Number(val); if (userVol !== null && userVol !== opts.volume && performance.now() > 4000) { userVol = opts.volume; store.set("vol", userVol); } applyVol(); }
     else if (name === "animated") setAnimated(!!val);
-    else if (name === "idleMinutes") idleMs = Math.max(0, Number(val) || 0) * 60000;
+    else if (name === "idleMinutes") idleMs = rec ? 0 : Math.max(0, Number(val) || 0) * 60000;
     else if (name in opts) opts[name] = !!val;
     document.body.classList.toggle("noplayer", !opts.showPlayer);
     document.body.classList.toggle("nocal", !opts.showCalendar);

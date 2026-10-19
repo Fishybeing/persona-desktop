@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Persona Desktop for Linux: shows the wallpaper page as the desktop, with the Persona 5 menu and system bars on top of it."""
 import glob, json, os, re, sys, time, zipfile
+# WebKit's sandboxed page process can hang on a stale shared cache (seen with ~/.cache/fontconfig), so this app
+# and its page process get their own cache folder. Set before GLib reads it.
+USER_CACHE = os.environ.get("XDG_CACHE_HOME")
+os.environ["XDG_CACHE_HOME"] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cache")
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
@@ -328,7 +332,7 @@ class Wallpaper(Gtk.Window):
         self.place(monitor)
 
         data = os.path.join(GLib.get_user_data_dir(), "persona-desktop", "webdata")
-        manager = WebKit2.WebsiteDataManager(base_data_directory=data, base_cache_directory=os.path.join(GLib.get_user_cache_dir(), "persona-desktop"))
+        manager = WebKit2.WebsiteDataManager(base_data_directory=data, base_cache_directory=os.path.join(GLib.get_user_cache_dir(), "webkit"))
         ctx = WebKit2.WebContext.new_with_website_data_manager(manager)
         ctx.set_cache_model(WebKit2.CacheModel.DOCUMENT_VIEWER)
         ucm = WebKit2.UserContentManager()
@@ -344,7 +348,7 @@ class Wallpaper(Gtk.Window):
         st.set_media_playback_requires_user_gesture(False)
         st.set_enable_webaudio(True)
         st.set_enable_write_console_messages_to_stdout(True)
-        st.set_hardware_acceleration_policy(WebKit2.HardwareAccelerationPolicy.ALWAYS)
+        st.set_hardware_acceleration_policy(WebKit2.HardwareAccelerationPolicy.NEVER if os.environ.get("PD_NOGPU") else WebKit2.HardwareAccelerationPolicy.ALWAYS)
         self.view.set_background_color(Gdk.RGBA(0.02, 0.09, 0.21, 1))
         self.view.connect("load-changed", self.on_load)
         self.view.connect("context-menu", lambda *a: True)
@@ -401,7 +405,7 @@ class Wallpaper(Gtk.Window):
             uri = decision.get_navigation_action().get_request().get_uri()
             if not uri.startswith("file:") and not uri.startswith("about:"):
                 decision.ignore()
-                Gio.AppInfo.launch_default_for_uri(uri, None)
+                self.app.open_uri(uri)
                 return True
         return False
 
@@ -493,7 +497,7 @@ class PersonaDesktop(Gtk.Application):
             self.wallpaper.js(opts["js"])
         elif opts.get("diag"):
             path = opts["diag"]
-            if isinstance(path, (bytes, bytearray)):
+            if not isinstance(path, str):
                 path = bytes(path).rstrip(b"\0").decode()
             hold = [cmdline]
 
@@ -522,14 +526,22 @@ class PersonaDesktop(Gtk.Application):
         log("menu built: %d apps" % n)
 
     def launch(self, iid):
-        target = self.launchers.get(iid)
+        self.start(self.launchers.get(iid))
+
+    def start(self, target):
+        """Opens an app or a link with the user's own cache folder, not the wallpaper's."""
+        ctx = Gdk.Display.get_default().get_app_launch_context()
+        if USER_CACHE:
+            ctx.setenv("XDG_CACHE_HOME", USER_CACHE)
+        else:
+            ctx.unsetenv("XDG_CACHE_HOME")
         try:
             if isinstance(target, Gio.AppInfo):
-                target.launch([], Gdk.Display.get_default().get_app_launch_context())
+                target.launch([], ctx)
             elif isinstance(target, str):
-                Gio.AppInfo.launch_default_for_uri(target, None)
+                Gio.AppInfo.launch_default_for_uri(target, ctx)
         except GLib.Error as e:
-            log("couldn't open %s: %s" % (iid, e.message))
+            log("couldn't open %s: %s" % (target, e.message))
 
     def push_stats(self):
         if self.wallpaper and self.wallpaper.ready:
@@ -548,8 +560,11 @@ class PersonaDesktop(Gtk.Application):
         subprocess.run([sys.executable, os.path.join(APP, "update_playlist.py")])
         self.wallpaper.load()
 
+    def open_uri(self, uri):
+        self.start(uri)
+
     def open_music(self):
-        Gio.AppInfo.launch_default_for_uri(file_url(os.path.realpath(os.path.join(WALL, "music"))), None)
+        self.open_uri(file_url(os.path.realpath(os.path.join(WALL, "music"))))
 
 
 def running():

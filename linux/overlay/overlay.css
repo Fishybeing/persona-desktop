@@ -1,3 +1,8 @@
+/* WebKitGTK won't use the wallpaper's own @font-face rules (they declare weight and italic style, and the text asks
+   for normal), so the calendar and player fell back to a plain font. The same files again, without the descriptors. */
+@font-face { font-family: "P3 Display"; src: url("fonts/BarlowCondensed-ExtraBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "P3 Bold"; src: url("fonts/BarlowCondensed-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "P3 Text"; src: url("fonts/BarlowCondensed-SemiBold.ttf") format("truetype"); }
 @font-face { font-family: "Personified UX"; src: url("{RES}/menu/Fonts/PersonifiedUXRegular.ttf") format("truetype"); }
 @font-face { font-family: "PD Roboto Condensed"; src: url("{RES}/menu/Fonts/RobotoCondensed-Bold.ttf") format("truetype"); font-weight: 700; }
 @font-face { font-family: "Cartoonist"; src: url("{RES}/system/Cartoonistkooky-p9za.otf") format("opentype"); }
@@ -34,6 +39,6 @@
 .pd-num { position: absolute; width: 120px; text-align: right; font: italic 37px "Cartoonist", sans-serif; line-height: 1.15; transform: rotate(-11deg); transform-origin: 100% 0; pointer-events: none; }
 .pd-cpu { left: 3px; top: 150px; color: rgb(106, 254, 221); }
 .pd-ram { left: 88px; top: 134px; color: rgb(254, 100, 231); }
-.pd-meter { position: absolute; height: 5px; width: 0; background-size: 150px 5px; background-repeat: no-repeat; transition: width 0.6s ease; pointer-events: none; }
-.pd-cpubar { left: 62px; top: 177px; }
-.pd-rambar { left: 84px; top: 184px; }
+.pd-meter { position: absolute; width: 0; background-repeat: no-repeat; background-position: 0 0; transition: width 0.6s ease; pointer-events: none; }
+.pd-cpubar { left: 62px; top: 177px; height: 26px; }
+.pd-rambar { left: 84px; top: 184px; height: 33px; }

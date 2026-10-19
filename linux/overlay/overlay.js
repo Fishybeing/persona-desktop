@@ -141,12 +141,13 @@
     setMenu(sections) { buildPanel(sections || []); },
     setStats(cpu, ram) {
       cpuNum.textContent = pad3(cpu); ramNum.textContent = pad3(ram);
-      cpuBar.style.width = (1.5 * cpu) + "px"; ramBar.style.width = (1.5 * ram) + "px";
+      cpuBar.style.width = (1.15 * cpu) + "px"; ramBar.style.width = (1.12 * ram) + "px";
     },
     setWorkArea(x, y, w, h) {
       if (!store.get("sysPos", null)) { sys.style.left = (x + 30) + "px"; sys.style.top = Math.max(y, y + h - 300) + "px"; }
       if (!store.get("menuPos", null)) { menu.style.left = (x + 110) + "px"; menu.style.top = Math.max(36, y + 8) + "px"; }
     },
-    open(o) { if (o !== open) setOpen(!!o); }
+    open(o) { if (!!o !== open) setOpen(!!o); },
+    placeMenu(x, y) { menu.style.left = x + "px"; menu.style.top = y + "px"; store.set("menuPos", [x, y]); }
   };
 })();

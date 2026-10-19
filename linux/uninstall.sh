@@ -21,6 +21,6 @@ case "$icons" in
 esac
 
 rm -f "$APPS"/persona-desktop*.desktop "${XDG_CONFIG_HOME:-$HOME/.config}/autostart/persona-desktop.desktop"
-rm -rf "$DEST" "${XDG_CACHE_HOME:-$HOME/.cache}/persona-desktop"
+rm -rf "$DEST"
 echo "Done. Your settings are still in ~/.config/persona-desktop; delete that folder too if you want."
 read -rp "Press Enter to close." _ || true
