@@ -114,7 +114,7 @@ def end_card(img, t):
     k = ease_out(t / 0.3)
     # labels on each half
     f = font(FONT_P5, 70)
-    for text, x, y in (("WINDOWS", 140, 140), ("LINUX", W - 140, 560)):
+    for text, x, y in (("WINDOWS", 140, 140), ("LINUX", 1240, 900)):
         box = f.getbbox(text)
         tw = box[2] - box[0]
         xx = x if text == "WINDOWS" else x - tw
