@@ -77,6 +77,31 @@ The installer is a plain PowerShell script that isn't code-signed, so some antiv
 
 Start menu > Persona Desktop > **Uninstall Persona Desktop**. Your music gets moved to `Music\Persona Desktop music` first, and your old icons come back. Lively and Rainmeter stay installed; the uninstaller tells you how to remove them too.
 
+## Linux
+
+Persona Desktop also runs on Linux (X11 sessions; tested on Ubuntu 24.04 with MATE). It's the same wallpaper, music
+player, Persona 5 menu and system bars, without Lively or Rainmeter.
+
+Download or clone this repo, then in a terminal:
+
+```
+./install.sh
+```
+
+It installs what's missing (WebKitGTK, GStreamer, psutil; it asks for your password once if it needs to), downloads
+the wallpaper, and starts it. It also starts by itself when you log in.
+
+- **Music:** put songs in `~/Music/Persona Desktop`, then run **Persona Desktop: update playlist** from your app menu.
+- **Menu:** click the red MENU tab. It lists your installed apps and Steam games. Hit UPDATE LIST after installing
+  something, and SETTINGS for the wallpaper options (the same ones as Lively's Customize on Windows).
+- **Desktop icons:** on MATE and Cinnamon the installer turns off the file manager's desktop icons so the wallpaper
+  can be the desktop. Uninstalling turns them back on.
+- **Something not working?** App menu > **Persona Desktop: get log** makes `PersonaDesktop-log.zip` on your Desktop.
+- **Uninstalling:** app menu > **Uninstall Persona Desktop**. Your music is moved to `~/Music/Persona Desktop music`.
+
+Wayland sessions aren't supported yet (the wallpaper can't sit behind your windows there). Pick an "Xorg" session on
+the login screen.
+
 ## Credits
 
 See [CREDITS.md](CREDITS.md). Persona is a series by ATLUS and SEGA. This is a free fan project and isn't affiliated with them.
