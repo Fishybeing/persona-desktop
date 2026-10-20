@@ -201,6 +201,7 @@ def build_menu():
         target, shown = None, name
         if appid and str(appid) in games:
             target = "steam://rungameid/%d" % appid
+            games.pop(str(appid))  # Steam's own name can differ ("Overwatch® 2"), so don't list it a second time
         if not target:
             hit = next((a for a in apps if re.search(rx, a.get_name() or "")), None)
             if hit:
@@ -465,6 +466,8 @@ class PersonaDesktop(Gtk.Application):
         if psutil:
             psutil.cpu_percent(None)
             GLib.timeout_add(1000, self.push_stats)
+        self.pointer = None
+        GLib.timeout_add(2000, self.watch_pointer)
 
     def build_windows(self, display):
         primary = display.get_primary_monitor() or display.get_monitor(0)
@@ -548,6 +551,15 @@ class PersonaDesktop(Gtk.Application):
             self.wallpaper.js("PD.setStats(%d, %d)" % (round(psutil.cpu_percent(None)), round(psutil.virtual_memory().percent)))
         return True
 
+    def watch_pointer(self):
+        """The page only sees the mouse while it's over the desktop, so moving it over a window looked like being away
+        and the video kept dropping to the still picture. Any mouse movement counts as being here."""
+        _, x, y = Gdk.Display.get_default().get_default_seat().get_pointer().get_position()
+        if self.pointer and self.pointer != (x, y) and self.wallpaper and self.wallpaper.ready:
+            self.wallpaper.js("window.dispatchEvent(new Event('mousemove'))")
+        self.pointer = (x, y)
+        return True
+
     def open_settings(self):
         if not self.settings_win:
             self.settings_win = SettingsWindow(self)
@@ -556,9 +568,9 @@ class PersonaDesktop(Gtk.Application):
         self.settings_win.present()
 
     def update_playlist(self):
-        import subprocess
-        subprocess.run([sys.executable, os.path.join(APP, "update_playlist.py")])
-        self.wallpaper.load()
+        # Runs in the background: looking songs up on YouTube Music can take a while and would freeze the desktop.
+        proc = Gio.Subprocess.new([sys.executable, os.path.join(APP, "update_playlist.py")], Gio.SubprocessFlags.NONE)
+        proc.wait_async(None, lambda p, res: (p.wait_finish(res), self.wallpaper.load()))
 
     def open_uri(self, uri):
         self.start(uri)

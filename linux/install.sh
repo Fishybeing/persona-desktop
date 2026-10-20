@@ -92,7 +92,7 @@ fi
 
 mkdir -p "$HOME/Music"
 [ -e "$HOME/Music/Persona Desktop" ] || ln -s "$DEST/wallpaper/music" "$HOME/Music/Persona Desktop"
-python3 "$DEST/app/update_playlist.py" | head -n1 | sed 's/^/   /'
+python3 "$DEST/app/update_playlist.py" | tail -n1 | sed 's/^/   /'
 
 step "Setting up the Persona 5 menu and system bars"
 pack=$(ls -t "$HOME"/Downloads/persona_5_desktop_icon_pack*.zip 2>/dev/null | head -n1 || true)
@@ -147,10 +147,10 @@ Terminal=${5:-false}
 Categories=Utility;
 EOF
 }
-entry persona-desktop "Persona Desktop" "$run" preferences-desktop-wallpaper
-entry persona-desktop-settings "Persona Desktop settings" "$run --settings" preferences-desktop
+entry persona-desktop "Persona Desktop" "\"$run\"" preferences-desktop-wallpaper
+entry persona-desktop-settings "Persona Desktop settings" "\"$run\" --settings" preferences-desktop
 entry persona-desktop-playlist "Persona Desktop: update playlist" "\"$DEST/app/update-playlist.sh\"" view-refresh
-entry persona-desktop-menu "Persona Desktop: update menu" "$run --update-menu" view-refresh
+entry persona-desktop-menu "Persona Desktop: update menu" "\"$run\" --update-menu" view-refresh
 entry persona-desktop-music "Persona Desktop: music folder" "xdg-open \"$DEST/wallpaper/music\"" folder-music
 entry persona-desktop-log "Persona Desktop: get log" "\"$DEST/app/get-log.sh\"" dialog-information true
 entry persona-desktop-uninstall "Uninstall Persona Desktop" "\"$DEST/app/uninstall.sh\"" edit-delete true

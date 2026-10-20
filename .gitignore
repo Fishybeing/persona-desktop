@@ -4,3 +4,5 @@ Voicemeeter*
 PersonaHelper.ps1
 SoundVolumeView*
 audio-backup/
+__pycache__/
+*.pyc
