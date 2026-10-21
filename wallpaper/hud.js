@@ -95,6 +95,15 @@
     strikes++;
     diag("video problem " + strikes + ": " + why);
     const v = vids[curVid];
+    // WebKitGTK (Linux) sometimes stops a video for a while without any error. Reloading it blanked the background and
+    // giving up left the picture on for good, so there it just steps past the frame it stopped on and keeps going.
+    if (!window.chrome) {
+      if (strikes >= 2) goSingle(why);
+      if (v.duration) v.currentTime = (v.currentTime + 0.1) % v.duration;
+      v.play().catch(err => diag("play failed: " + err.message));
+      lastMove = performance.now();
+      return;
+    }
     if (strikes === 1) v.play().catch(err => diag("play failed: " + err.message));
     else if (strikes === 2) { goSingle(why); v.play().catch(err => diag("play failed: " + err.message)); }
     else if (strikes === 3) { const at = v.currentTime; v.load(); v.currentTime = at; v.play().catch(err => diag("play failed: " + err.message)); }
@@ -156,7 +165,7 @@
     }),
     log: diagLog.slice()
   });
-  diag("started, " + vids.length + " video elements");
+  diag("started at " + new Date().toLocaleTimeString() + ", " + vids.length + " video elements");
   if (rec) idleMs = 0;
   if (rec && rec.sync && vids.length) {
     goSingle("recording mode");

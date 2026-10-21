@@ -538,13 +538,23 @@ class PersonaDesktop(Gtk.Application):
             ctx.setenv("XDG_CACHE_HOME", USER_CACHE)
         else:
             ctx.unsetenv("XDG_CACHE_HOME")
+        uris = []
+        if isinstance(target, str):
+            uris = [target]
         try:
-            if isinstance(target, Gio.AppInfo):
-                target.launch([], ctx)
-            elif isinstance(target, str):
-                Gio.AppInfo.launch_default_for_uri(target, ctx)
+            if uris:
+                target = Gio.File.new_for_uri(uris[0]).query_default_handler(None)
+            if isinstance(target, Gio.DesktopAppInfo):
+                # Apps would otherwise write into this app's log (Chrome fills it with its own errors).
+                null = os.open(os.devnull, os.O_RDWR)
+                try:
+                    target.launch_uris_as_manager_with_fds(uris, ctx, GLib.SpawnFlags.SEARCH_PATH, None, None, None, None, null, null, null)
+                finally:
+                    os.close(null)
+            elif target:
+                target.launch_uris(uris, ctx)
         except GLib.Error as e:
-            log("couldn't open %s: %s" % (target, e.message))
+            log("couldn't open %s: %s" % (uris or target, e.message))
 
     def push_stats(self):
         if self.wallpaper and self.wallpaper.ready:
